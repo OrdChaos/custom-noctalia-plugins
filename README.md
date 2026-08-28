@@ -34,7 +34,7 @@ needs, so it can be used as a standalone path or git source.
 - Everything else (mode switching, restart, proxy groups, latency tests,
   traffic stream, shortcut) is unchanged from upstream.
 
-Version is bumped to `0.1.8` in both `plugin.toml` and `catalog.toml`.
+Version is bumped to `0.1.9` in both `plugin.toml` and `catalog.toml`.
 Noctalia only accepts strict `MAJOR.MINOR.PATCH` versions (no pre-release
 suffixes), so a `0.1.3-ordchaos.1` style string would be rejected.
 
@@ -75,7 +75,7 @@ plugin without touching any other plugin.
 noctalia msg plugins list | grep mihomo
 ```
 
-It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.1.8` — the source
+It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.1.9` — the source
 name in brackets proves the local copy won. If it still says `[community]`,
 check that the path source was added and is enabled.
 

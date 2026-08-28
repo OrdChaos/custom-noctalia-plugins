@@ -35,17 +35,19 @@ end
 -- Speed labels use a fixed capsule width: each triangle sits at the start of
 -- a fixed slot (traffic mode: two half-width slots, so ▼ is pinned at the
 -- left edge and ▲ at the exact middle) and the digits grow into the reserved
--- empty space. Nothing but the digits' right end ever moves.
-local SPEED_LABEL_WIDTH = 165
+-- empty space. Nothing but the digits' right end ever moves. Font size 14
+-- matches the host's default widget label (Style::fontSizeBody), so the
+-- numbers line up with the other bar widgets.
+local SPEED_LABEL_WIDTH = 180
 
 local function speed_triangle(text)
-  return ui.label({ text = text, fontSize = 12, color = "on_surface", fontWeight = "medium" })
+  return ui.label({ text = text, fontSize = 14, color = "on_surface", fontWeight = "medium" })
 end
 
 local function speed_rate(text)
   return ui.label({
     text = text,
-    fontSize = 12,
+    fontSize = 14,
     color = "on_surface",
     fontWeight = "medium",
     maxLines = 1,
