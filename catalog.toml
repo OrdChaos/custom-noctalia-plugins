@@ -1,0 +1,20 @@
+# Noctalia plugin source catalog.
+#
+# Index of every plugin this source ships. This file is maintained by hand:
+# keep each row in sync with the plugin's plugin.toml (id, version,
+# plugin_api). The per-plugin plugin.toml stays authoritative; the host
+# re-reads it on enable. `updated_at` dates the commit that shipped the
+# current row version.
+
+[[plugin]]
+id = "mdj2812/mihomo-control"
+name = "Mihomo Control"
+version = "0.1.4"
+updated_at = 1787899773
+added_at = 1787899773
+author = "mdj2812"
+license = "MIT"
+icon = "cat"
+description = "Monitor and control Mihomo (Clash Meta) — live traffic, proxy mode, group selection, and connections, local or remote."
+plugin_api = 9
+tags = ["network", "indicator", "utility", "bar", "panel", "service", "shortcut"]
