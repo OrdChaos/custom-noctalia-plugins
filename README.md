@@ -1,4 +1,4 @@
-# mihomo-control source (personal fork)
+# custom-noctalia-plugins
 
 A minimal Noctalia plugin source containing a single plugin:
 [`mdj2812/mihomo-control`](./mihomo-control/) — a modified fork of the
@@ -50,7 +50,7 @@ suffixes), so a `0.1.3-ordchaos.1` style string would be rejected.
 From the root of this repository:
 
 ```sh
-noctalia msg plugins source add mihomo-control-dev path "$PWD"
+noctalia msg plugins source add custom-noctalia-plugins path "$PWD"
 noctalia msg plugins enable mdj2812/mihomo-control
 ```
 
@@ -72,7 +72,7 @@ plugin without touching any other plugin.
 noctalia msg plugins list | grep mihomo
 ```
 
-It must show `mdj2812/mihomo-control [mihomo-control-dev] 0.1.4` — the source
+It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.1.7` — the source
 name in brackets proves the local copy won. If it still says `[community]`,
 check that the path source was added and is enabled.
 
@@ -80,7 +80,7 @@ check that the path source was added and is enabled.
 
 ```sh
 noctalia msg plugins disable mdj2812/mihomo-control   # optional: stop using it
-noctalia msg plugins source remove mihomo-control-dev
+noctalia msg plugins source remove custom-noctalia-plugins
 ```
 
 With the source removed and the plugin still enabled, the plugin falls back to
@@ -103,7 +103,7 @@ the built-in community copy (0.1.3) under the same ID.
 After pushing to GitHub (or any git host):
 
 ```sh
-noctalia msg plugins source add mihomo-control git https://github.com/<you>/<repo>.git
+noctalia msg plugins source add custom-noctalia-plugins git https://github.com/<you>/<repo>.git
 noctalia msg plugins enable mdj2812/mihomo-control
 ```
 
@@ -117,7 +117,7 @@ Requirements for a git source:
 After pushing new commits:
 
 ```sh
-noctalia msg plugins update mihomo-control
+noctalia msg plugins update custom-noctalia-plugins
 ```
 
 The git source is cached locally by Noctalia; `update` fetches the new HEAD,
