@@ -103,7 +103,7 @@ the built-in community copy (0.1.3) under the same ID.
 After pushing to GitHub (or any git host):
 
 ```sh
-noctalia msg plugins source add custom-noctalia-plugins git https://github.com/<you>/<repo>.git
+noctalia msg plugins source add custom-noctalia-plugins git https://github.com/OrdChaos/custom-noctalia-plugins
 noctalia msg plugins enable mdj2812/mihomo-control
 ```
 
