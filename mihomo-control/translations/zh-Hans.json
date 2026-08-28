@@ -93,12 +93,11 @@
       }
     },
     "panel_placement": {
-      "description": "选择控制面板在屏幕中央浮动显示、附着在栏组件旁，或悬停时从状态栏弹出。",
+      "description": "选择控制面板在屏幕中央浮动显示，或附着在栏组件旁。",
       "label": "面板位置",
       "options": {
         "attached": "附着",
-        "floating": "浮动",
-        "hover": "悬停（从状态栏弹出）"
+        "floating": "浮动"
       }
     },
     "port": {

@@ -8,7 +8,7 @@
 
 id = "mdj2812/mihomo-control"
 name = "Mihomo Control"
-version = "0.1.6"
+version = "0.1.7"
 plugin_api = 9
 author = "mdj2812"
 license = "MIT"
@@ -81,7 +81,6 @@ description_key = "settings.panel_placement.description"
 options = [
   { value = "floating", label_key = "settings.panel_placement.options.floating" },
   { value = "attached", label_key = "settings.panel_placement.options.attached" },
-  { value = "hover", label_key = "settings.panel_placement.options.hover" },
 ]
 
 # ── Entries ──────────────────────────────────────────────────────────────────

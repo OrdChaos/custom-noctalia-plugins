@@ -93,12 +93,11 @@
       }
     },
     "panel_placement": {
-      "description": "Choose whether the control panel opens centered on screen, attached to the bar widget, or on hover from the bar.",
+      "description": "Choose whether the control panel opens centered on screen or attached to the bar widget.",
       "label": "Panel placement",
       "options": {
         "attached": "Attached",
-        "floating": "Floating",
-        "hover": "Hover (from bar)"
+        "floating": "Floating"
       }
     },
     "port": {

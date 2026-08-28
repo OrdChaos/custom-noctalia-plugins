@@ -505,17 +505,7 @@ render = function()
     }))
   end
 
-  -- In hover mode the widget drives the panel: publish the panel's hover and
-  -- open state so the widget can hold the panel open while the pointer is
-  -- over it and close it once the pointer has left panel and capsule alike.
-  local hover_mode = noctalia.getConfig("panel_placement") == "hover"
-  panel.render(ui.column({
-    flexGrow = 1,
-    gap = 12,
-    onHover = hover_mode and function(state, _key)
-      noctalia.state.set("mihomo.panel_hovered", state == "true")
-    end or nil,
-  }, {
+  panel.render(ui.column({ flexGrow = 1, gap = 12 }, {
     ui.column({ gap = 6 }, {
       ui.row({ align = "center", gap = 8 }, {
         ui.image({ path = "icon.png", width = 16, height = 16 }),
@@ -565,14 +555,8 @@ for _, key in {
 end
 
 function onOpen(_context)
-  noctalia.state.set("mihomo.panel_open", true)
   refresh_snapshot()
   render()
-end
-
-function onClose()
-  noctalia.state.set("mihomo.panel_open", false)
-  noctalia.state.set("mihomo.panel_hovered", false)
 end
 
 refresh_snapshot()
