@@ -582,6 +582,7 @@ local function update_subscriptions()
 
     if #names == 0 then
       finish()
+      log("no remote (HTTP) proxy providers found")
       noctalia.notify(noctalia.tr("panel.update_subscriptions"), noctalia.tr("notify.no_remote_providers"))
       return
     end
@@ -597,6 +598,7 @@ local function update_subscriptions()
     local function next_provider()
       if index > #names then
         finish()
+        log(`provider update finished: {updated} ok, {failed} failed`)
         if failed == 0 then
           noctalia.notify(
             noctalia.tr("notify.subscriptions_updated"),
