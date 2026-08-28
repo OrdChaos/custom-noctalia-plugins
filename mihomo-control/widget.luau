@@ -2,7 +2,10 @@
 -- Mihomo Control — bar widget.
 --
 -- Shows a text-only label (proxy mode by default, or the configured widget
--- label) from the service's shared state — no icon. Left click toggles the
+-- label) from the service's shared state — no icon. Speed labels
+-- (download/upload/traffic) render in a fixed-width capsule with the
+-- triangle pinned at the slot start, so the capsule and triangle never move
+-- as the rates change and the bar layout stays put. Left click toggles the
 -- control panel; the tooltip holds the connection status, mode, totals,
 -- connection count and the current selection of every proxy group.
 
@@ -27,6 +30,26 @@ local function format_rate(bytes_per_second)
     return string.format("%.1f KB/s", value / 1024)
   end
   return string.format("%d B/s", value)
+end
+
+-- Speed labels use a fixed capsule width: each triangle sits at the start of
+-- a fixed slot (traffic mode: two half-width slots, so ▼ is pinned at the
+-- left edge and ▲ at the exact middle) and the digits grow into the reserved
+-- empty space. Nothing but the digits' right end ever moves.
+local SPEED_LABEL_WIDTH = 165
+
+local function speed_triangle(text)
+  return ui.label({ text = text, fontSize = 12, color = "on_surface", fontWeight = "medium" })
+end
+
+local function speed_rate(text)
+  return ui.label({
+    text = text,
+    fontSize = 12,
+    color = "on_surface",
+    fontWeight = "medium",
+    maxLines = 1,
+  })
 end
 
 local function group_latency(group)
@@ -112,10 +135,33 @@ local function render()
   local online = conn.status == "online"
   local mode = noctalia.tr("panel.mode_" .. (config.mode or "rule"))
 
-  -- Text only. When the configured label is "none" there is nothing left to
-  -- show, so fall back to the proxy mode instead of an empty capsule.
-  local label_text = configured_label(mode, traffic, connections, groups) or mode
-  barWidget.setText(label_text)
+  local content = noctalia.getConfig("label_content") or "mode"
+  if not barWidget.isVertical() and content == "traffic" then
+    local half = SPEED_LABEL_WIDTH / 2
+    barWidget.render(ui.row({ width = SPEED_LABEL_WIDTH, align = "center" }, {
+      ui.row({ width = half, gap = 4, align = "center" }, {
+        speed_triangle("▼"),
+        speed_rate(format_rate(traffic.down)),
+      }),
+      ui.row({ width = half, gap = 4, align = "center" }, {
+        speed_triangle("▲"),
+        speed_rate(format_rate(traffic.up)),
+      }),
+    }))
+  elseif not barWidget.isVertical() and (content == "download" or content == "upload") then
+    local is_down = content == "download"
+    barWidget.render(ui.row({ width = SPEED_LABEL_WIDTH, align = "center" }, {
+      ui.row({ gap = 4, align = "center" }, {
+        speed_triangle(is_down and "▼" or "▲"),
+        speed_rate(format_rate(is_down and traffic.down or traffic.up)),
+      }),
+    }))
+  else
+    -- Text only. When the configured label is "none" there is nothing left to
+    -- show, so fall back to the proxy mode instead of an empty capsule.
+    local label_text = configured_label(mode, traffic, connections, groups) or mode
+    barWidget.setText(label_text)
+  end
 
   local status_value = "Offline"
   if online then

@@ -21,11 +21,12 @@ direct), and **Widget label** can instead show download speed, upload speed,
 both rates, or the active connection count. It can also show the first visible
 proxy group's current selection or its selected latency, falling back to that
 group's best known member latency. With **Widget label** set to **None** the
-widget falls back to showing the proxy mode. Hover it for the connection
-status, live download and upload rates, connection count and each proxy
-group's current selection. Left-click the widget to toggle the control panel
-using the configured **Panel placement**. Both variants can also be opened
-directly:
+widget falls back to showing the proxy mode. The speed labels render in a
+fixed-width capsule with the ▼/▲ triangle pinned in place, so the bar layout
+does not shift as the rates change. Hover it for the connection status, live
+download and upload rates, connection count and each proxy group's current
+selection. Left-click the widget to toggle the control panel using the
+configured **Panel placement**. Both variants can also be opened directly:
 
 ```sh
 noctalia msg panel-toggle mdj2812/mihomo-control:panel
