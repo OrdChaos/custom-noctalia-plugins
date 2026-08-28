@@ -38,7 +38,7 @@ end
 -- empty space. Nothing but the digits' right end ever moves. Font size 14
 -- matches the host's default widget label (Style::fontSizeBody), so the
 -- numbers line up with the other bar widgets.
-local SPEED_LABEL_WIDTH = 180
+local SPEED_LABEL_WIDTH = 185
 
 local function speed_triangle(text)
   return ui.label({ text = text, fontSize = 14, color = "on_surface", fontWeight = "medium" })
