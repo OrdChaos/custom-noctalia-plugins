@@ -78,22 +78,6 @@
       "description": "Mihomo 外部控制器的地址或 IP。",
       "label": "主机"
     },
-    "icon_color": {
-      "description": "可着色 Mihomo 字形的颜色。",
-      "label": "图标颜色"
-    },
-    "icon_color_mode": {
-      "description": "根据连接状态为 Mihomo 字形着色，或使用单一自定义颜色。",
-      "label": "图标颜色模式",
-      "options": {
-        "custom": "自定义",
-        "status": "连接状态"
-      }
-    },
-    "icon_size": {
-      "description": "栏图标的像素大小（10–32）。",
-      "label": "图标大小"
-    },
     "label_content": {
       "description": "选择 Mihomo 图标旁显示的内容。",
       "label": "组件标签",

@@ -15,16 +15,17 @@ secret.
 
 ## Usage
 
-Add the **Mihomo Control** widget from the Add-widget picker. By default it
-shows the current proxy mode (rule / global / direct). **Widget label** can
-instead show nothing, download speed, upload speed, both rates, or the active
-connection count. It can also show the first visible proxy group's current
-selection or its selected latency, falling back to that group's best known
-member latency. Its size and color presentation are also configurable. Hover it
-for the connection status, live download and upload rates, connection count and
-each proxy group's current selection. Left-click the widget to toggle the
-control panel using the configured **Panel placement**. Both variants can also
-be opened directly:
+Add the **Mihomo Control** widget from the Add-widget picker. It is a
+text-only capsule: by default it shows the current proxy mode (rule / global /
+direct), and **Widget label** can instead show download speed, upload speed,
+both rates, or the active connection count. It can also show the first visible
+proxy group's current selection or its selected latency, falling back to that
+group's best known member latency. With **Widget label** set to **None** the
+widget falls back to showing the proxy mode. Hover it for the connection
+status, live download and upload rates, connection count and each proxy
+group's current selection. Left-click the widget to toggle the control panel
+using the configured **Panel placement**. Both variants can also be opened
+directly:
 
 ```sh
 noctalia msg panel-toggle mdj2812/mihomo-control:panel
@@ -67,10 +68,7 @@ all communication with the external controller and streams the traffic data.
 | Test URL            | string  | `https://www.gstatic.com/generate_204` | URL used for latency tests; empty uses each group's configured test URL. |
 | Refresh interval    | int     | `2`          | Seconds between status polls (1–60); traffic rates stream in real time.     |
 | Panel placement     | select  | `floating`   | Open the control panel centered on screen or attached to the bar widget.    |
-| Widget label        | select  | `mode`       | Show nothing, mode, traffic, connections, or first-group proxy/latency.     |
-| Icon size           | int     | `16`         | Bar icon size in pixels (10–32).                                            |
-| Icon color mode     | select  | `status`     | Color the Mihomo glyph by connection status or use a custom color.          |
-| Icon color          | color   | `primary`    | Color used by the tintable Mihomo glyph.                                    |
+| Widget label        | select  | `mode`       | Show mode, traffic, connections, or first-group proxy/latency; the widget has no icon. |
 
 ## IPC
 
@@ -116,10 +114,8 @@ noctalia msg plugin mdj2812/mihomo-control:service all self-test
   no processes and runs no external commands. It writes only the custom
   proxy-group display order (group names, never the secret) to its Noctalia
   plugin data directory. Reordering does not modify the Mihomo configuration.
-- The bar widget uses a tintable glyph traced from the Clash cat silhouette. By
-  default it is green online, amber while connecting and red offline; **Icon
-  color mode** can instead apply one custom color. The panel keeps the official
-  neutral logo next to its own status indicator.
+- The bar widget is text-only (no icon); the label content is configurable
+  under **Widget label**.
 - The traffic rate uses mihomo's streaming `GET /traffic` endpoint; status,
   connections and proxy groups are polled every refresh interval.
 - The secret is stored in your Noctalia config and sent as the standard
@@ -146,8 +142,7 @@ noctalia msg plugin mdj2812/mihomo-control:service all self-test
 
 - `service.luau` — headless API backend, publishes `mihomo.*` state.
 - `group_logic.luau` — pure helpers for group ordering and traffic dedup (unit-tested).
-- `widget.luau` — bar widget (rates + tooltip).
+- `widget.luau` — text-only bar widget (label + tooltip).
 - `panel.luau` — control panel.
 - `shortcut.luau` — rule/global mode toggle.
-- `fonts/` — reviewable vector source and generated tintable Mihomo glyph font.
 - `translations/` — user-facing strings.

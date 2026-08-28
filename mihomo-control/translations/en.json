@@ -78,22 +78,6 @@
       "description": "Hostname or IP of the Mihomo external controller.",
       "label": "Host"
     },
-    "icon_color": {
-      "description": "Color of the tintable Mihomo glyph.",
-      "label": "Icon color"
-    },
-    "icon_color_mode": {
-      "description": "Color the Mihomo glyph by connection status or use one custom color.",
-      "label": "Icon color mode",
-      "options": {
-        "custom": "Custom",
-        "status": "Connection status"
-      }
-    },
-    "icon_size": {
-      "description": "Size of the bar icon in pixels (10–32).",
-      "label": "Icon size"
-    },
     "label_content": {
       "description": "Choose what is shown beside the Mihomo icon.",
       "label": "Widget label",

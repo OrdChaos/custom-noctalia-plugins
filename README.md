@@ -26,10 +26,12 @@ needs, so it can be used as a standalone path or git source.
   (remote-subscription) proxy provider via `PUT /providers/proxies/<name>`.
   File/inline providers are skipped, provider names are percent-encoded, and a
   summary notification reports the success/failure counts.
+- **Text-only bar widget** — the bar capsule shows only the configured label
+  (mode by default), no icon; the icon size/color settings are removed.
 - Everything else (mode switching, restart, proxy groups, latency tests,
-  traffic stream, widget, shortcut) is unchanged from upstream.
+  traffic stream, shortcut) is unchanged from upstream.
 
-Version is bumped to `0.1.4` in both `plugin.toml` and `catalog.toml`.
+Version is bumped to `0.1.5` in both `plugin.toml` and `catalog.toml`.
 Noctalia only accepts strict `MAJOR.MINOR.PATCH` versions (no pre-release
 suffixes), so a `0.1.3-ordchaos.1` style string would be rejected.
 
