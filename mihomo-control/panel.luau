@@ -229,6 +229,15 @@ local function controls_row()
   local tun_enabled = snapshot.config.tunEnabled == true
   local updating = snapshot.subscriptions.updating == true
   return ui.row({ gap = 8, align = "center" }, {
+    ui.label({ text = noctalia.tr("panel.tun"), color = "on_surface_variant" }),
+    ui.toggle({
+      checked = tun_enabled,
+      onChange = function()
+        -- The service owns the request and republishes config; the toggle
+        -- only flips once the PATCH has actually succeeded.
+        send_command({ op = "tun", enabled = not tun_enabled })
+      end,
+    }),
     ui.select({
       options = {
         noctalia.tr("panel.mode_rule"),
@@ -241,15 +250,6 @@ local function controls_row()
         if chosen then
           send_command({ op = "mode", mode = chosen })
         end
-      end,
-    }),
-    ui.label({ text = noctalia.tr("panel.tun"), color = "on_surface_variant" }),
-    ui.toggle({
-      checked = tun_enabled,
-      onChange = function()
-        -- The service owns the request and republishes config; the toggle
-        -- only flips once the PATCH has actually succeeded.
-        send_command({ op = "tun", enabled = not tun_enabled })
       end,
     }),
     ui.button({
@@ -505,7 +505,17 @@ render = function()
     }))
   end
 
-  panel.render(ui.column({ flexGrow = 1, gap = 12 }, {
+  -- In hover mode the widget drives the panel: publish the panel's hover and
+  -- open state so the widget can hold the panel open while the pointer is
+  -- over it and close it once the pointer has left panel and capsule alike.
+  local hover_mode = noctalia.getConfig("panel_placement") == "hover"
+  panel.render(ui.column({
+    flexGrow = 1,
+    gap = 12,
+    onHover = hover_mode and function(state, _key)
+      noctalia.state.set("mihomo.panel_hovered", state == "true")
+    end or nil,
+  }, {
     ui.column({ gap = 6 }, {
       ui.row({ align = "center", gap = 8 }, {
         ui.image({ path = "icon.png", width = 16, height = 16 }),
@@ -555,8 +565,14 @@ for _, key in {
 end
 
 function onOpen(_context)
+  noctalia.state.set("mihomo.panel_open", true)
   refresh_snapshot()
   render()
+end
+
+function onClose()
+  noctalia.state.set("mihomo.panel_open", false)
+  noctalia.state.set("mihomo.panel_hovered", false)
 end
 
 refresh_snapshot()

@@ -33,7 +33,9 @@ noctalia msg panel-toggle mdj2812/mihomo-control:panel-attached
 ```
 
 The first command opens the centered floating panel; the second opens the
-variant attached to the bar.
+variant attached to the bar. With **Panel placement** set to **Hover**, the
+widget opens the attached panel when you hover its capsule (and closes it
+again after the pointer leaves panel and capsule); click still toggles it.
 
 The panel lets you switch the proxy mode (rule / global / direct), toggle the
 runtime **TUN** status, update all HTTP (remote-subscription) proxy providers
@@ -67,7 +69,7 @@ all communication with the external controller and streams the traffic data.
 | Allow insecure TLS  | bool    | off          | Skip certificate verification for self-signed TLS controllers.              |
 | Test URL            | string  | `https://www.gstatic.com/generate_204` | URL used for latency tests; empty uses each group's configured test URL. |
 | Refresh interval    | int     | `2`          | Seconds between status polls (1–60); traffic rates stream in real time.     |
-| Panel placement     | select  | `floating`   | Open the control panel centered on screen or attached to the bar widget.    |
+| Panel placement     | select  | `floating`   | Floating center, attached to the bar widget, or hover-open from the bar.   |
 | Widget label        | select  | `mode`       | Show mode, traffic, connections, or first-group proxy/latency; the widget has no icon. |
 
 ## IPC

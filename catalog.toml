@@ -9,8 +9,8 @@
 [[plugin]]
 id = "mdj2812/mihomo-control"
 name = "Mihomo Control"
-version = "0.1.5"
-updated_at = 1787901874
+version = "0.1.6"
+updated_at = 1787904233
 added_at = 1787899773
 author = "mdj2812"
 license = "MIT"
