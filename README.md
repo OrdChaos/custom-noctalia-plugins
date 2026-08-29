@@ -28,13 +28,13 @@ needs, so it can be used as a standalone path or git source.
   summary notification reports the success/failure counts.
 - **Text-only bar widget** — the bar capsule shows only the configured label
   (mode by default), no icon; the icon size/color settings are removed. Speed
-  labels (download/upload/traffic) use a fixed-width capsule with the
-  triangle pinned at the left / middle, so the bar layout never shifts as
-  rates change.
+  labels use a compact fixed-width capsule — traffic mode stacks upload over
+  download, macOS-style, with the triangle pinned at the line start — so the
+  bar layout never shifts as rates change.
 - Everything else (mode switching, restart, proxy groups, latency tests,
   traffic stream, shortcut) is unchanged from upstream.
 
-Version is bumped to `0.1.10` in both `plugin.toml` and `catalog.toml`.
+Version is bumped to `0.1.11` in both `plugin.toml` and `catalog.toml`.
 Noctalia only accepts strict `MAJOR.MINOR.PATCH` versions (no pre-release
 suffixes), so a `0.1.3-ordchaos.1` style string would be rejected.
 
@@ -75,7 +75,7 @@ plugin without touching any other plugin.
 noctalia msg plugins list | grep mihomo
 ```
 
-It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.1.10` — the source
+It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.1.11` — the source
 name in brackets proves the local copy won. If it still says `[community]`,
 check that the path source was added and is enabled.
 

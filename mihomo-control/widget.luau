@@ -4,8 +4,9 @@
 -- Shows a text-only label (proxy mode by default, or the configured widget
 -- label) from the service's shared state — no icon. Speed labels
 -- (download/upload/traffic) render in a fixed-width capsule with the
--- triangle pinned at the slot start, so the capsule and triangle never move
--- as the rates change and the bar layout stays put. Left click toggles the
+-- triangle pinned at the line start; traffic mode stacks the two rates
+-- macOS-style (upload on top, download below) in a compact capsule, so the
+-- digits can grow without moving the bar layout. Left click toggles the
 -- control panel; the tooltip holds the connection status, mode, totals,
 -- connection count and the current selection of every proxy group.
 
@@ -33,21 +34,20 @@ local function format_rate(bytes_per_second)
 end
 
 -- Speed labels use a fixed capsule width: each triangle sits at the start of
--- a fixed slot (traffic mode: two half-width slots, so ▼ is pinned at the
--- left edge and ▲ at the exact middle) and the digits grow into the reserved
--- empty space. Nothing but the digits' right end ever moves. Font size 14
--- matches the host's default widget label (Style::fontSizeBody), so the
--- numbers line up with the other bar widgets.
-local SPEED_LABEL_WIDTH = 185
+-- its line and the digits grow into the reserved empty space, so nothing but
+-- the digits' right end ever moves. Traffic mode stacks upload over download
+-- in one compact capsule.
+local SPEED_LABEL_WIDTH = 80
+local SPEED_FONT_SIZE = 11
 
 local function speed_triangle(text)
-  return ui.label({ text = text, fontSize = 14, color = "on_surface", fontWeight = "medium" })
+  return ui.label({ text = text, fontSize = SPEED_FONT_SIZE, color = "on_surface", fontWeight = "medium" })
 end
 
 local function speed_rate(text)
   return ui.label({
     text = text,
-    fontSize = 14,
+    fontSize = SPEED_FONT_SIZE,
     color = "on_surface",
     fontWeight = "medium",
     maxLines = 1,
@@ -139,21 +139,22 @@ local function render()
 
   local content = noctalia.getConfig("label_content") or "mode"
   if not barWidget.isVertical() and content == "traffic" then
-    local half = SPEED_LABEL_WIDTH / 2
-    barWidget.render(ui.row({ width = SPEED_LABEL_WIDTH, align = "center" }, {
-      ui.row({ width = half, gap = 4, align = "center" }, {
-        speed_triangle("▼"),
-        speed_rate(format_rate(traffic.down)),
-      }),
-      ui.row({ width = half, gap = 4, align = "center" }, {
+    -- macOS-style stacked capsule: upload on top, download below, both in
+    -- one compact fixed-width column with the triangles pinned at the left.
+    barWidget.render(ui.column({ width = SPEED_LABEL_WIDTH, gap = 1 }, {
+      ui.row({ gap = 3, align = "center" }, {
         speed_triangle("▲"),
         speed_rate(format_rate(traffic.up)),
+      }),
+      ui.row({ gap = 3, align = "center" }, {
+        speed_triangle("▼"),
+        speed_rate(format_rate(traffic.down)),
       }),
     }))
   elseif not barWidget.isVertical() and (content == "download" or content == "upload") then
     local is_down = content == "download"
     barWidget.render(ui.row({ width = SPEED_LABEL_WIDTH, align = "center" }, {
-      ui.row({ gap = 4, align = "center" }, {
+      ui.row({ gap = 3, align = "center" }, {
         speed_triangle(is_down and "▼" or "▲"),
         speed_rate(format_rate(is_down and traffic.down or traffic.up)),
       }),
