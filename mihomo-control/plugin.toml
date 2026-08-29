@@ -8,7 +8,7 @@
 
 id = "mdj2812/mihomo-control"
 name = "Mihomo Control (Custom)"
-version = "0.1.11"
+version = "0.1.12"
 plugin_api = 9
 author = "mdj2812"
 license = "MIT"

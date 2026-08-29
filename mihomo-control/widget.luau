@@ -37,7 +37,7 @@ end
 -- its line and the digits grow into the reserved empty space, so nothing but
 -- the digits' right end ever moves. Traffic mode stacks upload over download
 -- in one compact capsule.
-local SPEED_LABEL_WIDTH = 80
+local SPEED_LABEL_WIDTH = 72
 local SPEED_FONT_SIZE = 11
 
 local function speed_triangle(text)
@@ -141,7 +141,7 @@ local function render()
   if not barWidget.isVertical() and content == "traffic" then
     -- macOS-style stacked capsule: upload on top, download below, both in
     -- one compact fixed-width column with the triangles pinned at the left.
-    barWidget.render(ui.column({ width = SPEED_LABEL_WIDTH, gap = 1 }, {
+    barWidget.render(ui.column({ width = SPEED_LABEL_WIDTH, gap = 0 }, {
       ui.row({ gap = 3, align = "center" }, {
         speed_triangle("▲"),
         speed_rate(format_rate(traffic.up)),
