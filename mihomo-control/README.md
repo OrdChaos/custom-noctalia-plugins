@@ -15,19 +15,17 @@ secret.
 
 ## Usage
 
-Add the **Mihomo Control** widget from the Add-widget picker. It is a
-text-only capsule: by default it shows the current proxy mode (rule / global /
-direct), and **Widget label** can instead show download speed, upload speed,
-both rates, or the active connection count. It can also show the first visible
-proxy group's current selection or its selected latency, falling back to that
-group's best known member latency. With **Widget label** set to **None** the
-widget falls back to showing the proxy mode. The speed labels render in a
-compact fixed-width capsule with the ▼/▲ triangle pinned at the line start
-(traffic mode stacks upload over download, macOS-style), so the bar layout
-does not shift as the rates change. Hover it for the connection status, live
-download and upload rates, connection count and each proxy group's current
-selection. Left-click the widget to toggle the control panel using the
-configured **Panel placement**. Both variants can also be opened directly:
+Add the **Mihomo Control** widget from the Add-widget picker. It is an
+icon-only status item rendered through Noctalia's standard status-icon
+pipeline (same size, color and behavior as the other bar icons). It shows
+the Tabler **route** glyph only when the whole Mihomo TUN path is confirmed
+up — the controller is reachable **and** TUN mode is enabled — and the
+**route-off** glyph otherwise (offline, unreachable, TUN off, or status not
+yet confirmed). No color or animation signals the state; the glyph itself is
+the difference. Hover it for the connection status, live download and upload
+rates, connection count and each proxy group's current selection. Left-click
+the widget to toggle the control panel using the configured **Panel
+placement**. Both variants can also be opened directly:
 
 ```sh
 noctalia msg panel-toggle mdj2812/mihomo-control:panel
@@ -70,7 +68,6 @@ all communication with the external controller and streams the traffic data.
 | Test URL            | string  | `https://www.gstatic.com/generate_204` | URL used for latency tests; empty uses each group's configured test URL. |
 | Refresh interval    | int     | `2`          | Seconds between status polls (1–60); traffic rates stream in real time.     |
 | Panel placement     | select  | `floating`   | Open the control panel centered on screen or attached to the bar widget.   |
-| Widget label        | select  | `mode`       | Show mode, traffic, connections, or first-group proxy/latency; the widget has no icon. |
 
 ## IPC
 
@@ -116,8 +113,7 @@ noctalia msg plugin mdj2812/mihomo-control:service all self-test
   no processes and runs no external commands. It writes only the custom
   proxy-group display order (group names, never the secret) to its Noctalia
   plugin data directory. Reordering does not modify the Mihomo configuration.
-- The bar widget is text-only (no icon); the label content is configurable
-  under **Widget label**.
+- The bar widget is an icon-only status item: the Tabler `route` glyph when the Mihomo TUN path is confirmed up, `route-off` otherwise (fail-closed). Both render in the host's normal foreground color.
 - The traffic rate uses mihomo's streaming `GET /traffic` endpoint; status,
   connections and proxy groups are polled every refresh interval.
 - The secret is stored in your Noctalia config and sent as the standard
@@ -144,7 +140,7 @@ noctalia msg plugin mdj2812/mihomo-control:service all self-test
 
 - `service.luau` — headless API backend, publishes `mihomo.*` state.
 - `group_logic.luau` — pure helpers for group ordering and traffic dedup (unit-tested).
-- `widget.luau` — text-only bar widget (label + tooltip).
+- `widget.luau` — icon-only status item (route/route-off glyph + tooltip).
 - `panel.luau` — control panel.
 - `shortcut.luau` — rule/global mode toggle.
 - `translations/` — user-facing strings.

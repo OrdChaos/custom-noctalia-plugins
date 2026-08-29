@@ -1,14 +1,18 @@
 --!nonstrict
 -- Mihomo Control — bar widget.
 --
--- Shows a text-only label (proxy mode by default, or the configured widget
--- label) from the service's shared state — no icon. Speed labels
--- (download/upload/traffic) render in a fixed-width capsule with the
--- triangle pinned at the line start; traffic mode stacks the two rates
--- macOS-style (upload on top, download below) in a compact capsule, so the
--- digits can grow without moving the bar layout. Left click toggles the
--- control panel; the tooltip holds the connection status, mode, totals,
--- connection count and the current selection of every proxy group.
+-- Icon-only status item. It shows the Tabler "route" glyph only when the
+-- whole Mihomo TUN path is confirmed up (controller reachable AND TUN
+-- enabled) and "route-off" otherwise: offline, unreachable, TUN off, or
+-- state not yet confirmed all fail closed to "route-off".
+--
+-- Both glyphs render through the host's standard status-icon pipeline
+-- (fixed-size glyph box, foreground color, ink centered in the box), so
+-- switching state never changes the layout, and no color or animation is
+-- used to signal it.
+--
+-- Left click toggles the control panel; the tooltip keeps the connection
+-- status, mode, rates, connection count and proxy-group selection.
 
 local PLUGIN_ID = "mdj2812/mihomo-control"
 
@@ -33,100 +37,6 @@ local function format_rate(bytes_per_second)
   return string.format("%d B/s", value)
 end
 
--- Speed labels use a fixed capsule width: each triangle sits at the start of
--- its line and the digits grow into the reserved empty space, so nothing but
--- the digits' right end ever moves. Traffic mode stacks upload over download
--- in one compact capsule.
-local SPEED_LABEL_WIDTH = 72
-local SPEED_FONT_SIZE = 11
-
-local function speed_triangle(text)
-  return ui.label({ text = text, fontSize = SPEED_FONT_SIZE, color = "on_surface", fontWeight = "medium" })
-end
-
-local function speed_rate(text)
-  return ui.label({
-    text = text,
-    fontSize = SPEED_FONT_SIZE,
-    color = "on_surface",
-    fontWeight = "medium",
-    maxLines = 1,
-  })
-end
-
-local function group_latency(group)
-  if group.now and group.now ~= "" then
-    for _, member in ipairs(type(group.members) == "table" and group.members or {}) do
-      if member.name == group.now and member.delay ~= nil then
-        return tonumber(member.delay)
-      end
-    end
-  end
-
-  local best = nil
-  local any_tested = false
-  for _, member in ipairs(type(group.members) == "table" and group.members or {}) do
-    local delay = tonumber(member.delay)
-    if delay ~= nil then
-      any_tested = true
-      if delay > 0 and (best == nil or delay < best) then
-        best = delay
-      end
-    end
-  end
-  if best ~= nil then
-    return best
-  end
-  return any_tested and 0 or nil
-end
-
-local function first_visible_group(groups)
-  for _, group in ipairs(type(groups) == "table" and groups or {}) do
-    if group.hidden ~= true then
-      return group
-    end
-  end
-  return nil
-end
-
-local function configured_label(mode, traffic, connections, groups)
-  local content = noctalia.getConfig("label_content") or "mode"
-  if content == "none" then
-    return nil
-  end
-  if content == "download" then
-    return `▼ {format_rate(traffic.down)}`
-  end
-  if content == "upload" then
-    return `▲ {format_rate(traffic.up)}`
-  end
-  if content == "traffic" then
-    return `▼ {format_rate(traffic.down)}  ▲ {format_rate(traffic.up)}`
-  end
-  if content == "connections" then
-    return noctalia.tr("widget.connections_short", {
-      count = math.max(0, math.floor(tonumber(connections.count) or 0)),
-    })
-  end
-  if content == "proxy" then
-    local group = first_visible_group(groups)
-    local selected = group and tostring(group.now or "") or ""
-    return selected ~= "" and selected or "—"
-  end
-  if content == "latency" then
-    local group = first_visible_group(groups)
-    local delay = group and group_latency(group) or nil
-    if delay == nil then
-      return "— ms"
-    end
-    if delay <= 0 then
-      return noctalia.tr("widget.latency_timeout")
-    end
-    return `{math.floor(delay)} ms`
-  end
-  return mode
-end
-
 local function render()
   local conn = noctalia.state.get("mihomo.connection") or {}
   local config = noctalia.state.get("mihomo.config") or {}
@@ -134,37 +44,14 @@ local function render()
   local connections = noctalia.state.get("mihomo.connections") or {}
   local groups = noctalia.state.get("mihomo.groups") or {}
 
+  -- Fail-closed: only a confirmed online controller with TUN enabled shows
+  -- "route". While still connecting nothing is confirmed yet, so it shows
+  -- "route-off" as well.
+  local tun_path_up = conn.status == "online" and config.tunEnabled == true
+  barWidget.setGlyph(tun_path_up and "route" or "route-off")
+
   local online = conn.status == "online"
   local mode = noctalia.tr("panel.mode_" .. (config.mode or "rule"))
-
-  local content = noctalia.getConfig("label_content") or "mode"
-  if not barWidget.isVertical() and content == "traffic" then
-    -- macOS-style stacked capsule: upload on top, download below, both in
-    -- one compact fixed-width column with the triangles pinned at the left.
-    barWidget.render(ui.column({ width = SPEED_LABEL_WIDTH, gap = 0 }, {
-      ui.row({ gap = 3, align = "center" }, {
-        speed_triangle("▲"),
-        speed_rate(format_rate(traffic.up)),
-      }),
-      ui.row({ gap = 3, align = "center" }, {
-        speed_triangle("▼"),
-        speed_rate(format_rate(traffic.down)),
-      }),
-    }))
-  elseif not barWidget.isVertical() and (content == "download" or content == "upload") then
-    local is_down = content == "download"
-    barWidget.render(ui.row({ width = SPEED_LABEL_WIDTH, align = "center" }, {
-      ui.row({ gap = 3, align = "center" }, {
-        speed_triangle(is_down and "▼" or "▲"),
-        speed_rate(format_rate(is_down and traffic.down or traffic.up)),
-      }),
-    }))
-  else
-    -- Text only. When the configured label is "none" there is nothing left to
-    -- show, so fall back to the proxy mode instead of an empty capsule.
-    local label_text = configured_label(mode, traffic, connections, groups) or mode
-    barWidget.setText(label_text)
-  end
 
   local status_value = "Offline"
   if online then
@@ -182,7 +69,7 @@ local function render()
 
   local tooltip = {
     { key = noctalia.tr("widget.status"), value = status_value },
-    { key = noctalia.tr("widget.mode"), value = noctalia.tr("panel.mode_" .. (config.mode or "rule")) },
+    { key = noctalia.tr("widget.mode"), value = mode },
     { key = noctalia.tr("widget.down"), value = `▼ {format_rate(traffic.down)}` },
     { key = noctalia.tr("widget.up"), value = `▲ {format_rate(traffic.up)}` },
     { key = noctalia.tr("widget.connections"), value = tostring(connections.count or 0) },
@@ -208,11 +95,6 @@ for _, key in {
   noctalia.state.watch(key, function(_value)
     render()
   end)
-end
-
-function update()
-  noctalia.setUpdateInterval(1000)
-  render()
 end
 
 function onConfigChanged()

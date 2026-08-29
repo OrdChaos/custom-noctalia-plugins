@@ -78,20 +78,6 @@
       "description": "Hostname or IP of the Mihomo external controller.",
       "label": "Host"
     },
-    "label_content": {
-      "description": "Choose what is shown beside the Mihomo icon.",
-      "label": "Widget label",
-      "options": {
-        "connections": "Connection count",
-        "download": "Download speed",
-        "latency": "First group latency",
-        "mode": "Proxy mode",
-        "none": "None (icon only)",
-        "proxy": "First group selection",
-        "traffic": "Download + upload",
-        "upload": "Upload speed"
-      }
-    },
     "panel_placement": {
       "description": "Choose whether the control panel opens centered on screen or attached to the bar widget.",
       "label": "Panel placement",

@@ -78,20 +78,6 @@
       "description": "Mihomo 外部控制器的地址或 IP。",
       "label": "主机"
     },
-    "label_content": {
-      "description": "选择 Mihomo 图标旁显示的内容。",
-      "label": "组件标签",
-      "options": {
-        "connections": "连接数",
-        "download": "下载速度",
-        "latency": "首个策略组延迟",
-        "mode": "代理模式",
-        "none": "无（仅图标）",
-        "proxy": "首个策略组所选代理",
-        "traffic": "下载 + 上传",
-        "upload": "上传速度"
-      }
-    },
     "panel_placement": {
       "description": "选择控制面板在屏幕中央浮动显示，或附着在栏组件旁。",
       "label": "面板位置",

@@ -26,15 +26,14 @@ needs, so it can be used as a standalone path or git source.
   (remote-subscription) proxy provider via `PUT /providers/proxies/<name>`.
   File/inline providers are skipped, provider names are percent-encoded, and a
   summary notification reports the success/failure counts.
-- **Text-only bar widget** — the bar capsule shows only the configured label
-  (mode by default), no icon; the icon size/color settings are removed. Speed
-  labels use a compact fixed-width capsule — traffic mode stacks upload over
-  download, macOS-style, with the triangle pinned at the line start — so the
-  bar layout never shifts as rates change.
+- **Icon-only status widget** — the bar item is a fixed-size icon rendered
+  through Noctalia's standard status-icon pipeline: the Tabler `route` glyph
+  when the Mihomo TUN path is confirmed up (controller reachable + TUN on),
+  `route-off` otherwise (fail-closed). No rates, no colors, no width changes.
 - Everything else (mode switching, restart, proxy groups, latency tests,
   traffic stream, shortcut) is unchanged from upstream.
 
-Version is bumped to `0.1.12` in both `plugin.toml` and `catalog.toml`.
+Version is bumped to `0.1.13` in both `plugin.toml` and `catalog.toml`.
 Noctalia only accepts strict `MAJOR.MINOR.PATCH` versions (no pre-release
 suffixes), so a `0.1.3-ordchaos.1` style string would be rejected.
 
@@ -75,7 +74,7 @@ plugin without touching any other plugin.
 noctalia msg plugins list | grep mihomo
 ```
 
-It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.1.12` — the source
+It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.1.13` — the source
 name in brackets proves the local copy won. If it still says `[community]`,
 check that the path source was added and is enabled.
 
