@@ -70,8 +70,8 @@ local function render()
   local tooltip = {
     { key = noctalia.tr("widget.status"), value = status_value },
     { key = noctalia.tr("widget.mode"), value = mode },
-    { key = noctalia.tr("widget.down"), value = `▼ {format_rate(traffic.down)}` },
-    { key = noctalia.tr("widget.up"), value = `▲ {format_rate(traffic.up)}` },
+    { key = noctalia.tr("widget.down"), value = format_rate(traffic.down) },
+    { key = noctalia.tr("widget.up"), value = format_rate(traffic.up) },
     { key = noctalia.tr("widget.connections"), value = tostring(connections.count or 0) },
   }
   for _, group in ipairs(type(groups) == "table" and groups or {}) do
