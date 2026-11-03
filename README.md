@@ -16,26 +16,56 @@ needs, so it can be used as a standalone path or git source.
 > [mihomo-control/README.md](./mihomo-control/README.md) for the upstream
 > documentation, which is retained.
 
-## Differences from upstream 0.1.3
+## Upstream base
+
+This build tracks upstream **0.2.1** (`mihomo-control/` in
+[`noctalia-dev/community-plugins`](https://github.com/noctalia-dev/community-plugins),
+2026-10-26). The 0.2.x line brought:
+
+- **Multi-server controller profiles** — the panel has a **Server** dropdown,
+  profiles and per-server proxy-group order live in `servers.json`, and
+  **Manage** edits the active profile.
+- **`jq`-projected polling** — oversized `/connections` and `/proxies`
+  responses are projected through `jq` so polling stays inside Noctalia's Luau
+  CPU budget. `jq` is now a declared `plugin.toml` dependency and must be on
+  `PATH`.
+- **Hard reload** — right-click the panel refresh button to disable/enable the
+  plugin; left-click only re-polls the controller.
+- **Plugin API 43** — theme-role rename (`surface_container`,
+  `outline_variant`).
+
+Upstream lives in a monorepo; this repository is a standalone path/git source,
+so tracking upstream is a manual replay:
+
+1. copy `mihomo-control/` from the upstream repo;
+2. re-apply the custom changes below (they are small and localized);
+3. `noctalia plugins lint .` and `lua tests/group_order_test.lua`.
+
+## Differences from upstream 0.2.1
 
 - **TUN runtime toggle** — the panel's control row gains a `TUN` switch that
   reads the live `tun.enable` value from `GET /configs` and flips it via
   `PATCH /configs` (`{"tun": {"enable": true|false}}`). It is a runtime toggle
   only; the declarative Mihomo config file is never touched.
-- **Update subscriptions** — a panel button that updates every HTTP
-  (remote-subscription) proxy provider via `PUT /providers/proxies/<name>`.
-  File/inline providers are skipped, provider names are percent-encoded, and a
-  summary notification reports the success/failure counts.
+- **Update subscriptions** — a panel button that enumerates
+  `/providers/proxies` and updates every HTTP (remote-subscription) provider via
+  `PUT /providers/proxies/<name>`. File/inline providers are skipped, provider
+  names are percent-encoded, and a summary notification reports the
+  success/failure counts. The button is disabled while a pass is running.
 - **Icon-only status widget** — the bar item is a fixed-size icon rendered
   through Noctalia's standard status-icon pipeline: the Tabler `route` glyph
   when the Mihomo TUN path is confirmed up (controller reachable + TUN on),
   `route-off` otherwise (fail-closed). No rates, no colors, no width changes.
-- Everything else (mode switching, restart, proxy groups, latency tests,
-  traffic stream, shortcut) is unchanged from upstream.
+- **No widget presentation settings** — the upstream `label_content`,
+  `icon_size`, `icon_color_mode` and `icon_color` settings are removed from
+  `plugin.toml`/translations; only `panel_placement` remains.
+- Everything else (multi-server profiles, mode switching, restart, proxy
+  groups, latency tests, traffic stream, shortcut, `jq` projection, hard
+  reload) is unchanged from upstream 0.2.1.
 
-Version is bumped to `0.1.14` in both `plugin.toml` and `catalog.toml`.
-Noctalia only accepts strict `MAJOR.MINOR.PATCH` versions (no pre-release
-suffixes), so a `0.1.3-ordchaos.1` style string would be rejected.
+Version is `0.2.2` in both `plugin.toml` and `catalog.toml` (upstream 0.2.1 +
+custom patch). Noctalia only accepts strict `MAJOR.MINOR.PATCH` versions (no
+pre-release suffixes), so a `0.2.1-ordchaos.1` style string would be rejected.
 
 ## Repository layout
 
@@ -74,9 +104,9 @@ plugin without touching any other plugin.
 noctalia msg plugins list | grep mihomo
 ```
 
-It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.1.14` — the source
-name in brackets proves the local copy won. If it still says `[community]`,
-check that the path source was added and is enabled.
+It must show `mdj2812/mihomo-control [custom-noctalia-plugins] 0.2.2` — the
+source name in brackets proves the local copy won. If it still says
+`[community]`, check that the path source was added and is enabled.
 
 ### Removing the dev source
 
@@ -86,7 +116,7 @@ noctalia msg plugins source remove custom-noctalia-plugins
 ```
 
 With the source removed and the plugin still enabled, the plugin falls back to
-the built-in community copy (0.1.3) under the same ID.
+the built-in community copy (0.2.1) under the same ID.
 
 ### Hot reload
 
@@ -132,10 +162,11 @@ Offline (no running Mihomo required):
 ```sh
 cd mihomo-control
 noctalia plugins lint .          # manifest/code cross-check (parses the Luau)
-lua5.4 tests/group_order_test.lua
+lua tests/group_order_test.lua   # Lua 5.2+; upstream smoke.sh uses lua5.4
 ```
 
-Live smoke test while Noctalia is running (adds IPC checks):
+Live smoke test while Noctalia is running (adds IPC checks; needs `jq` on
+`PATH`):
 
 ```sh
 ./mihomo-control/tests/smoke.sh

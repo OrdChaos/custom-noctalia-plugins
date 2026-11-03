@@ -13,6 +13,12 @@ secret.
 | ID      | `mdj2812/mihomo-control`    |
 | Entries | Bar widget: `widget`; panels: `panel`, `panel-attached`; service: `service`; shortcut: `mode` |
 
+## Requirements
+
+- Network access to the Mihomo external controller (local or remote)
+- On `PATH` (declared in `plugin.toml` `dependencies`):
+  - `jq` — project oversized `/connections` and `/proxies` API responses during polling
+
 ## Usage
 
 Add the **Mihomo Control** widget from the Add-widget picker. It is an
@@ -33,19 +39,23 @@ noctalia msg panel-toggle mdj2812/mihomo-control:panel-attached
 ```
 
 The first command opens the centered floating panel; the second opens the
-variant attached to the bar (it extends from the bar next to the widget).
+variant attached to the bar.
 
 The panel lets you switch the proxy mode (rule / global / direct), toggle the
 runtime **TUN** status, update all HTTP (remote-subscription) proxy providers
-with **Update subscriptions**, restart the server, refresh the status, and
-manage every proxy group. Each group card lists all of its members with their
-latency — sourced from mihomo's health checks and refreshed by the group's
-**Test latency** button. Each card also shows an overall latency (the selected
-member's, or the best tested one) right in its subtitle, visible without
-expanding. Member lists are collapsed by default; click a group header to
-expand it. Click a member to select it; the current selection is marked with a
-dot. Use **Test all** next to the Proxy groups heading to run a latency test on
-every group at once. Drag a card by its ☰ grip over another card to reorder
+with **Update subscriptions**, restart the core, refresh the status, and manage
+every proxy group. Use the **Server** dropdown to switch between saved
+controller profiles (host, port, secret, TLS). **Manage** edits the active
+profile; profiles and per-server proxy-group order are stored in the plugin
+data directory. Right-click the refresh button to reload the whole plugin;
+left-click only re-polls the controller. Each group card lists all of its
+members with their latency — sourced from mihomo's health checks and refreshed
+by the group's **Test latency** button. Each card also shows an overall latency
+(the selected member's, or the best tested one) right in its subtitle, visible
+without expanding. Member lists are collapsed by default; click a group header
+to expand it. Click a member to select it; the current selection is marked with
+a dot. Use **Test all** next to the Proxy groups heading to run a latency test
+on every group at once. Drag a card by its ☰ grip over another card to reorder
 the groups. The nearest insertion gap opens to preview the resulting layout
 before drop. The custom display order survives controller polling and plugin
 restarts.
@@ -67,7 +77,7 @@ all communication with the external controller and streams the traffic data.
 | Allow insecure TLS  | bool    | off          | Skip certificate verification for self-signed TLS controllers.              |
 | Test URL            | string  | `https://www.gstatic.com/generate_204` | URL used for latency tests; empty uses each group's configured test URL. |
 | Refresh interval    | int     | `2`          | Seconds between status polls (1–60); traffic rates stream in real time.     |
-| Panel placement     | select  | `floating`   | Open the control panel centered on screen or attached to the bar widget.   |
+| Panel placement     | select  | `floating`   | Open the control panel centered on screen or attached to the bar widget.    |
 
 ## IPC
 
@@ -76,12 +86,14 @@ The service exposes two IPC events for scripting and debugging:
 ```sh
 noctalia msg plugin mdj2812/mihomo-control:service all refresh
 noctalia msg plugin mdj2812/mihomo-control:service all cmd '{"op":"mode","mode":"global"}'
+noctalia msg plugin mdj2812/mihomo-control:service all cmd '{"op":"tun","enabled":false}'
+noctalia msg plugin mdj2812/mihomo-control:service all cmd '{"op":"update_subscriptions"}'
 ```
 
 `refresh` re-polls version, config, connections and proxy groups. `cmd` accepts
-the same command tables the panel sends (`mode`, `tun`, `update_subscriptions`,
-`select`, `delay_test`, `delay_test_all`, `reorder_group`, `restart`,
-`close_connections`, `refresh`).
+the same command tables the panel sends (`mode`, `select`, `delay_test`,
+`delay_test_all`, `reorder_group`, `restart`, `close_connections`, `refresh`,
+`select_server`, `save_server`, `delete_server`, `tun`, `update_subscriptions`).
 `self-test` runs in-process checks for group ordering, traffic dedup helpers,
 and watchdog interval setup; results are published to `mihomo.self_test`.
 
@@ -91,7 +103,7 @@ Offline unit tests (plain Lua, no running shell required):
 
 ```sh
 cd mihomo-control
-lua5.4 tests/group_order_test.lua
+lua tests/group_order_test.lua   # Lua 5.2+; upstream smoke.sh uses lua5.4
 noctalia plugins lint .
 ```
 
@@ -109,11 +121,26 @@ noctalia msg plugin mdj2812/mihomo-control:service all self-test
 
 ## Notes
 
-- The plugin only talks HTTP to the configured external controller. It spawns
-  no processes and runs no external commands. It writes only the custom
-  proxy-group display order (group names, never the secret) to its Noctalia
-  plugin data directory. Reordering does not modify the Mihomo configuration.
-- The bar widget is an icon-only status item: the Tabler `route` glyph when the Mihomo TUN path is confirmed up, `route-off` otherwise (fail-closed). Both render in the host's normal foreground color.
+- The plugin talks HTTP to the configured external controller and shells out to
+  `jq` to project oversized `/connections` and `/proxies` responses so polling
+  stays within Noctalia's Luau CPU budget. It also runs `noctalia msg plugins
+  disable` / `enable` when the panel refresh button is right-clicked. It writes
+  server profiles and per-server proxy-group display order (group names, never
+  the secret) to its Noctalia plugin data directory. Reordering does not modify
+  the Mihomo configuration.
+- The bar widget is icon-only and uses Noctalia's standard glyph pipeline:
+  Tabler **route** when the controller is reachable **and** TUN mode is enabled,
+  **route-off** otherwise. It does not tint or animate the glyph, and it has no
+  widget-label or icon-size/color settings in this custom build.
+- **TUN** is a runtime toggle only: the panel reads `tun.enable` from
+  `GET /configs` and writes it back with `PATCH /configs`. The declarative
+  Mihomo config file is never edited, so a restart after a `guix system
+  reconfigure` restores the config's own `tun.enable` value.
+- **Update subscriptions** enumerates `/providers/proxies` and calls
+  `PUT /providers/proxies/<name>` only for HTTP (remote-subscription)
+  providers; file/inline providers are skipped. Provider names are
+  percent-encoded in the path. The button is disabled while a pass is in
+  flight, and a failure on one provider does not stop the remaining ones.
 - The traffic rate uses mihomo's streaming `GET /traffic` endpoint; status,
   connections and proxy groups are polled every refresh interval.
 - The secret is stored in your Noctalia config and sent as the standard
@@ -122,16 +149,6 @@ noctalia msg plugin mdj2812/mihomo-control:service all self-test
 - **Restart** posts to `/restart`, which re-executes the core; the plugin
   reconnects automatically once it is back. There is no API endpoint that
   stops the core — switching the mode to `direct` is the closest equivalent.
-- The **TUN** toggle is a runtime switch: it patches the live config
-  (`PATCH /configs` with `{"tun": {"enable": ...}}`) and never edits the
-  declarative config file. After the PATCH the service re-polls `/configs` so
-  the switch always converges on the real runtime state, including on failure.
-- **Update subscriptions** enumerates `GET /providers/proxies` and updates
-  only providers whose `vehicleType` is `HTTP` (remote subscriptions) via
-  `PUT /providers/proxies/<name>`. Provider names are percent-encoded as path
-  components, so names with spaces, `#`, `/`, `%` or CJK characters work. A
-  failure on one provider does not abort the rest; the result is summarized
-  in one notification and the proxy list is refreshed afterwards.
 - A latency test where every node fails is reported as *all nodes timed out*:
   mihomo answers the delay endpoint with HTTP 504 in that case. If that keeps
   happening, set **Test URL** to an endpoint your network can reach.
@@ -139,8 +156,9 @@ noctalia msg plugin mdj2812/mihomo-control:service all self-test
 ## Development
 
 - `service.luau` — headless API backend, publishes `mihomo.*` state.
-- `group_logic.luau` — pure helpers for group ordering and traffic dedup (unit-tested).
-- `widget.luau` — icon-only status item (route/route-off glyph + tooltip).
-- `panel.luau` — control panel.
+- `group_logic.luau` — pure helpers for group ordering, server profiles and
+  traffic dedup (unit-tested).
+- `widget.luau` — icon-only bar widget (glyph + tooltip).
+- `panel.luau` — control panel (server profiles, TUN toggle, subscription update).
 - `shortcut.luau` — rule/global mode toggle.
 - `translations/` — user-facing strings.

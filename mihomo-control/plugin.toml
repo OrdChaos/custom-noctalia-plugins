@@ -8,14 +8,14 @@
 
 id = "mdj2812/mihomo-control"
 name = "Mihomo Control (Custom)"
-version = "0.1.14"
-plugin_api = 9
+version = "0.2.2"
+plugin_api = 43
 author = "mdj2812"
 license = "MIT"
 icon = "cat"
 description = "Monitor and control Mihomo (Clash Meta) — live traffic, proxy mode, group selection, and connections, local or remote."
 tags = ["network", "indicator", "utility", "bar", "panel", "service", "shortcut"]
-dependencies = []
+dependencies = ["jq"]
 
 # ── Shared settings ──────────────────────────────────────────────────────────
 [[setting]]

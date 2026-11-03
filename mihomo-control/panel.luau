@@ -15,6 +15,7 @@
 --      and a latency-test button.
 
 local MODES = { "rule", "global", "direct" }
+local PLUGIN_ID = "mdj2812/mihomo-control"
 local GROUP_DRAG_TYPE = "mihomo-proxy-group"
 local GROUP_DROP_HIT_SLOP = 128
 
@@ -25,13 +26,28 @@ local snapshot = {
   connections = {},
   subscriptions = {},
   groups = {},
+  servers = { activeId = "", list = {} },
 }
+
+local server_editor_open = false
+local server_editing_id = nil
+local server_form = {
+  name = "",
+  host = "127.0.0.1",
+  port = "9090",
+  secret = "",
+  use_https = false,
+  allow_insecure_tls = false,
+  test_url = "",
+}
+local server_form_rev = 0
 
 -- Rolling traffic-rate history for the graph: one sample per published value
 -- change, capped so the window stays fixed.
 local TRAFFIC_HISTORY = 90
 local down_history = {}
 local up_history = {}
+local last_active_server_id = nil
 
 local function record_traffic(traffic)
   local down = tonumber(traffic.down) or 0
@@ -62,12 +78,31 @@ local function refresh_snapshot()
   snapshot.connections = noctalia.state.get("mihomo.connections") or snapshot.connections
   snapshot.subscriptions = noctalia.state.get("mihomo.subscriptions") or snapshot.subscriptions
   snapshot.groups = noctalia.state.get("mihomo.groups") or snapshot.groups
+  local servers = noctalia.state.get("mihomo.servers") or snapshot.servers
+  local active_id = type(servers.activeId) == "string" and servers.activeId or ""
+  if active_id ~= last_active_server_id then
+    last_active_server_id = active_id
+    down_history = {}
+    up_history = {}
+  end
+  snapshot.servers = servers
   record_traffic(snapshot.traffic)
 end
 
 local function send_command(cmd)
   cmd.seq = math.floor(os.clock() * 1000000)
   noctalia.state.set("mihomo.command", cmd)
+end
+
+local function reload_plugin()
+  panel.close()
+  noctalia.runAsync(
+    "noctalia msg plugins disable "
+      .. PLUGIN_ID
+      .. " && noctalia msg plugins enable "
+      .. PLUGIN_ID,
+    function() end
+  )
 end
 
 -- Expansion state for proxy-group cards: collapsed by default so long member
@@ -112,6 +147,14 @@ local function format_total(bytes)
     return string.format("%.1f KB", value / 1024)
   end
   return string.format("%d B", value)
+end
+
+local function format_memory(bytes)
+  local value = tonumber(bytes) or 0
+  if value <= 0 then
+    return "—"
+  end
+  return format_total(value)
 end
 
 local function latency_text(delay)
@@ -202,6 +245,222 @@ local function connection_text()
     or noctalia.tr("panel.offline_plain", { endpoint = endpoint })
 end
 
+local function find_server_by_id(id)
+  local list = type(snapshot.servers.list) == "table" and snapshot.servers.list or {}
+  for _, server in ipairs(list) do
+    if server.id == id then
+      return server
+    end
+  end
+  return nil
+end
+
+local function open_server_editor(server_id)
+  server_editing_id = server_id
+  if server_id ~= nil then
+    local server = find_server_by_id(server_id)
+    if server ~= nil then
+      server_form.name = server.name
+      server_form.host = server.host
+      server_form.port = tostring(server.port)
+      server_form.secret = ""
+      server_form.use_https = server.useHttps == true
+      server_form.allow_insecure_tls = server.allowInsecureTls == true
+      server_form.test_url = server.testUrl or ""
+    end
+  else
+    server_form.name = ""
+    server_form.host = "127.0.0.1"
+    server_form.port = "9090"
+    server_form.secret = ""
+    server_form.use_https = false
+    server_form.allow_insecure_tls = false
+    server_form.test_url = ""
+  end
+  server_editor_open = true
+  server_form_rev += 1
+  render()
+end
+
+local function close_server_editor()
+  server_editor_open = false
+  server_editing_id = nil
+  render()
+end
+
+local function save_server_form()
+  local cmd = {
+    op = "save_server",
+    name = server_form.name,
+    host = server_form.host,
+    port = server_form.port,
+    secret = server_form.secret,
+    use_https = server_form.use_https,
+    allow_insecure_tls = server_form.allow_insecure_tls,
+    test_url = server_form.test_url,
+  }
+  if server_editing_id ~= nil then
+    cmd.id = server_editing_id
+  end
+  send_command(cmd)
+  close_server_editor()
+end
+
+local function delete_server_form()
+  if server_editing_id == nil then
+    return
+  end
+  send_command({ op = "delete_server", id = server_editing_id })
+  close_server_editor()
+end
+
+local function server_row()
+  local list = type(snapshot.servers.list) == "table" and snapshot.servers.list or {}
+  if #list == 0 then
+    return nil
+  end
+  local labels = {}
+  local selected = 0
+  local active_id = snapshot.servers.activeId
+  for index, server in ipairs(list) do
+    table.insert(labels, server.name)
+    if server.id == active_id then
+      selected = index - 1
+    end
+  end
+  return ui.row({ gap = 8, align = "center" }, {
+    ui.label({
+      text = noctalia.tr("panel.server"),
+      color = "on_surface_variant",
+      fontSize = 12,
+    }),
+    ui.select({
+      key = "server-select-" .. tostring(active_id),
+      options = labels,
+      selectedIndex = selected,
+      flexGrow = 1,
+      onChange = function(index_text)
+        local index = (tonumber(index_text) or 0) + 1
+        local servers = noctalia.state.get("mihomo.servers") or {}
+        local current_list = type(servers.list) == "table" and servers.list or list
+        local server = current_list[index]
+        if server ~= nil then
+          send_command({ op = "select_server", id = server.id })
+        end
+      end,
+    }),
+    ui.button({
+      text = noctalia.tr("panel.server_manage"),
+      variant = "ghost",
+      onClick = function()
+        open_server_editor(active_id)
+      end,
+    }),
+    ui.button({
+      glyph = "plus",
+      tooltip = noctalia.tr("panel.server_add"),
+      variant = "ghost",
+      onClick = function()
+        open_server_editor(nil)
+      end,
+    }),
+  })
+end
+
+local function server_editor_card()
+  if not server_editor_open then
+    return nil
+  end
+  local rev = server_form_rev
+  return ui.column({ gap = 10, fill = "surface/0.5", radius = 12, padding = 12 }, {
+    ui.label({
+      text = server_editing_id ~= nil and noctalia.tr("panel.server_edit") or noctalia.tr("panel.server_add"),
+      fontWeight = "medium",
+      color = "on_surface_variant",
+    }),
+    ui.input({
+      key = "server-name-" .. rev,
+      value = server_form.name,
+      placeholder = noctalia.tr("panel.server_name"),
+      onChange = function(value)
+        server_form.name = value
+      end,
+    }),
+    ui.row({ gap = 8, align = "center" }, {
+      ui.input({
+        key = "server-host-" .. rev,
+        value = server_form.host,
+        placeholder = noctalia.tr("settings.host.label"),
+        flexGrow = 1,
+        onChange = function(value)
+          server_form.host = value
+        end,
+      }),
+      ui.input({
+        key = "server-port-" .. rev,
+        value = server_form.port,
+        placeholder = noctalia.tr("settings.port.label"),
+        width = 100,
+        onChange = function(value)
+          server_form.port = value
+        end,
+      }),
+    }),
+    ui.input({
+      key = "server-secret-" .. rev,
+      value = server_form.secret,
+      placeholder = server_editing_id ~= nil and noctalia.tr("panel.server_secret_keep") or noctalia.tr("settings.secret.label"),
+      onChange = function(value)
+        server_form.secret = value
+      end,
+    }),
+    ui.input({
+      key = "server-test-url-" .. rev,
+      value = server_form.test_url,
+      placeholder = noctalia.tr("settings.test_url.label"),
+      onChange = function(value)
+        server_form.test_url = value
+      end,
+    }),
+    ui.row({ gap = 12, align = "center" }, {
+      ui.toggle({
+        checked = server_form.use_https,
+        onChange = function(checked)
+          server_form.use_https = checked == true
+        end,
+      }),
+      ui.label({ text = noctalia.tr("settings.use_https.label"), color = "on_surface_variant", fontSize = 12 }),
+      ui.toggle({
+        checked = server_form.allow_insecure_tls,
+        onChange = function(checked)
+          server_form.allow_insecure_tls = checked == true
+        end,
+      }),
+      ui.label({ text = noctalia.tr("settings.allow_insecure_tls.label"), color = "on_surface_variant", fontSize = 12 }),
+    }),
+    (function()
+      local actions = {}
+      if server_editing_id ~= nil then
+        table.insert(actions, ui.button({
+          text = noctalia.tr("panel.server_delete"),
+          variant = "outline",
+          onClick = delete_server_form,
+        }))
+      end
+      table.insert(actions, ui.button({
+        text = noctalia.tr("panel.server_cancel"),
+        variant = "ghost",
+        onClick = close_server_editor,
+      }))
+      table.insert(actions, ui.button({
+        text = noctalia.tr("panel.server_save"),
+        onClick = save_server_form,
+      }))
+      return ui.row({ gap = 8, align = "center", justify = "end" }, actions)
+    end)(),
+  })
+end
+
 local function status_chip()
   local conn = snapshot.connection
   local online = conn.status == "online"
@@ -229,13 +488,13 @@ local function controls_row()
   local tun_enabled = snapshot.config.tunEnabled == true
   local updating = snapshot.subscriptions.updating == true
   return ui.row({ gap = 8, align = "center" }, {
-    ui.label({ text = noctalia.tr("panel.tun"), color = "on_surface_variant" }),
+    ui.label({ text = noctalia.tr("panel.tun"), color = "on_surface_variant", fontSize = 12 }),
     ui.toggle({
       checked = tun_enabled,
-      onChange = function()
+      onChange = function(checked)
         -- The service owns the request and republishes config; the toggle
-        -- only flips once the PATCH has actually succeeded.
-        send_command({ op = "tun", enabled = not tun_enabled })
+        -- only reflects the new value once the PATCH has actually succeeded.
+        send_command({ op = "tun", enabled = checked == true })
       end,
     }),
     ui.select({
@@ -310,7 +569,7 @@ local function traffic_card()
     }),
     ui.row({ gap = 16, align = "center" }, {
       ui.label({
-        text = `↓ {format_total(traffic.downTotal)} · ↑ {format_total(traffic.upTotal)} · {format_total(connections.memory)} {noctalia.tr("panel.memory")}`,
+        text = `↓ {format_total(traffic.downTotal)} · ↑ {format_total(traffic.upTotal)} · {format_memory(connections.memory)} {noctalia.tr("panel.memory")}`,
         color = "on_surface_variant",
         fontSize = 12,
       }),
@@ -420,7 +679,7 @@ local function group_card(group)
       table.insert(member_rows, ui.row({ gap = 6, align = "center", onClick = function()
         send_command({ op = "select", group = group.name, proxy = member.name })
       end }, {
-        ui.box({ width = 6, height = 6, radius = 3, fill = is_current and "primary" or "surface_variant" }),
+        ui.box({ width = 6, height = 6, radius = 3, fill = is_current and "primary" or "surface_container" }),
         ui.label({
           text = member.name,
           flexGrow = 1,
@@ -442,7 +701,7 @@ local function group_card(group)
   return ui.column({
     key = "group-card-" .. group.name,
     gap = 8,
-    border = "outline",
+    border = "outline_variant",
     borderWidth = 1,
     radius = 10,
     padding = 10,
@@ -468,6 +727,15 @@ render = function()
     controls_row(),
     traffic_card(),
   }
+
+  local server_selector = server_row()
+  if server_selector ~= nil then
+    table.insert(body, 1, server_selector)
+  end
+  local editor = server_editor_card()
+  if editor ~= nil then
+    table.insert(body, server_selector ~= nil and 2 or 1, editor)
+  end
 
   if #groups > 0 then
     local group_children = {
@@ -513,10 +781,13 @@ render = function()
         status_chip(),
         ui.button({
           glyph = "refresh",
-          tooltip = noctalia.tr("panel.refresh"),
+          tooltip = noctalia.tr("panel.refresh_tooltip"),
           variant = "ghost",
           onClick = function()
             send_command({ op = "refresh" })
+          end,
+          onRightClick = function()
+            reload_plugin()
           end,
         }),
         ui.button({
@@ -547,6 +818,7 @@ for _, key in {
   "mihomo.connections",
   "mihomo.subscriptions",
   "mihomo.groups",
+  "mihomo.servers",
 } do
   noctalia.state.watch(key, function(_value)
     refresh_snapshot()
