@@ -679,7 +679,7 @@ local function group_card(group)
       table.insert(member_rows, ui.row({ gap = 6, align = "center", onClick = function()
         send_command({ op = "select", group = group.name, proxy = member.name })
       end }, {
-        ui.box({ width = 6, height = 6, radius = 3, fill = is_current and "primary" or "surface_container" }),
+        ui.box({ width = 6, height = 6, radius = 3, fill = is_current and "primary" or "surface_variant" }),
         ui.label({
           text = member.name,
           flexGrow = 1,
@@ -701,7 +701,7 @@ local function group_card(group)
   return ui.column({
     key = "group-card-" .. group.name,
     gap = 8,
-    border = "outline_variant",
+    border = "outline",
     borderWidth = 1,
     radius = 10,
     padding = 10,

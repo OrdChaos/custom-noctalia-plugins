@@ -19,6 +19,13 @@ secret.
 - On `PATH` (declared in `plugin.toml` `dependencies`):
   - `jq` — project oversized `/connections` and `/proxies` API responses during polling
 
+## Compatibility
+
+The pinned Noctalia 5.3.0 supports plugin API **3–34**. This build declares
+`plugin_api = 9` (upstream 0.2.0's level) and keeps the pre-43 palette roles
+(`surface_variant`, `outline`), so it loads there with the same visuals.
+Upstream 0.2.1's `plugin_api = 43` is rejected by 5.3.0.
+
 ## Usage
 
 Add the **Mihomo Control** widget from the Add-widget picker. It is an

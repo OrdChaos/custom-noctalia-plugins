@@ -20,7 +20,8 @@ needs, so it can be used as a standalone path or git source.
 
 This build tracks upstream **0.2.1** (`mihomo-control/` in
 [`noctalia-dev/community-plugins`](https://github.com/noctalia-dev/community-plugins),
-2026-10-26). The 0.2.x line brought:
+2026-10-26), with the API-43 palette change backported for the pinned Noctalia
+5.3.0. The 0.2.x line brought:
 
 - **Multi-server controller profiles** — the panel has a **Server** dropdown,
   profiles and per-server proxy-group order live in `servers.json`, and
@@ -31,8 +32,12 @@ This build tracks upstream **0.2.1** (`mihomo-control/` in
   `PATH`.
 - **Hard reload** — right-click the panel refresh button to disable/enable the
   plugin; left-click only re-polls the controller.
-- **Plugin API 43** — theme-role rename (`surface_container`,
-  `outline_variant`).
+- **Host compatibility backport** — upstream 0.2.1 raises `plugin_api` to 43
+  and renames `surface_variant`/`outline` to `surface_container`/
+  `outline_variant`. The pinned Noctalia 5.3.0 supports plugin API **3–34**, so
+  this build keeps upstream 0.2.0's `plugin_api = 9` and the pre-43 palette
+  roles. The visual result is the same on 5.3.0; upstream 0.2.1's manifest
+  would be rejected there.
 
 Upstream lives in a monorepo; this repository is a standalone path/git source,
 so tracking upstream is a manual replay:
@@ -59,13 +64,18 @@ so tracking upstream is a manual replay:
 - **No widget presentation settings** — the upstream `label_content`,
   `icon_size`, `icon_color_mode` and `icon_color` settings are removed from
   `plugin.toml`/translations; only `panel_placement` remains.
+- **Noctalia 5.3.0 API compatibility** — `plugin_api = 9` and the pre-43
+  `surface_variant`/`outline` palette roles, so the plugin loads on the pinned
+  host (API 3–34). This is the only upstream 0.2.1 change that is not carried
+  over verbatim.
 - Everything else (multi-server profiles, mode switching, restart, proxy
   groups, latency tests, traffic stream, shortcut, `jq` projection, hard
   reload) is unchanged from upstream 0.2.1.
 
-Version is `0.2.2` in both `plugin.toml` and `catalog.toml` (upstream 0.2.1 +
-custom patch). Noctalia only accepts strict `MAJOR.MINOR.PATCH` versions (no
-pre-release suffixes), so a `0.2.1-ordchaos.1` style string would be rejected.
+Version is `0.2.2` in both `plugin.toml` and `catalog.toml` (upstream 0.2.1
+code + 5.3.0 API backport + custom patch). Noctalia only accepts strict
+`MAJOR.MINOR.PATCH` versions (no pre-release suffixes), so a
+`0.2.1-ordchaos.1` style string would be rejected.
 
 ## Repository layout
 
