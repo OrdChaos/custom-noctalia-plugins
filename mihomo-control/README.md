@@ -21,10 +21,8 @@ secret.
 
 ## Compatibility
 
-The pinned Noctalia 5.3.0 supports plugin API **3–34**. This build declares
-`plugin_api = 9` (upstream 0.2.0's level) and keeps the pre-43 palette roles
-(`surface_variant`, `outline`), so it loads there with the same visuals.
-Upstream 0.2.1's `plugin_api = 43` is rejected by 5.3.0.
+Requires Noctalia **5.4.0+** (plugin API 43). The panel uses the current
+palette roles (`surface_container`, `outline_variant`).
 
 ## Usage
 
