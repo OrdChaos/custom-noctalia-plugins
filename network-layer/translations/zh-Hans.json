@@ -78,5 +78,10 @@
     "mode_direct": "直连",
     "mode_rule": "代理",
     "mode_global": "全局"
+  },
+  "notify": {
+    "delay_done": "测速完成",
+    "delay_selected": "当前选中 {node} - {latency}",
+    "delay_timeout_value": "超时"
   }
 }

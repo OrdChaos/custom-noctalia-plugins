@@ -41,7 +41,8 @@ local function render()
   local traffic = noctalia.state.get("network.traffic") or {}
   local online = conn.status == "online"
 
-  barWidget.setGlyph(online and "route" or "route-off")
+  local active = online and config.tunEnabled == true
+  barWidget.setGlyph(active and "route" or "route-off")
 
   local endpoint = `{conn.host or "—"}:{conn.port or "—"}`
   local status = status_text(conn)

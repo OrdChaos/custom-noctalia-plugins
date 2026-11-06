@@ -78,5 +78,10 @@
     "mode_direct": "Direct",
     "mode_rule": "Proxy",
     "mode_global": "Global"
+  },
+  "notify": {
+    "delay_done": "Latency test complete",
+    "delay_selected": "Selected {node} - {latency}",
+    "delay_timeout_value": "timeout"
   }
 }

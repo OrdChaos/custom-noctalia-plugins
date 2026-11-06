@@ -479,6 +479,29 @@ local function finish_testing()
   publish("testing")
 end
 
+local function notify_delay_result(group_name)
+  local group = find_group(group_name)
+  if group == nil or group.now == nil or group.now == "" then
+    return
+  end
+  local selected = group.now
+  local delay = nil
+  for _, member in ipairs(group.members) do
+    if member.name == selected then
+      delay = member.delay
+      break
+    end
+  end
+  if delay == nil then
+    return
+  end
+  local latency = delay > 0 and `{delay} ms` or noctalia.tr("notify.delay_timeout_value")
+  noctalia.notify(
+    noctalia.tr("notify.delay_done"),
+    noctalia.tr("notify.delay_selected", { node = selected, latency = latency })
+  )
+end
+
 local function run_delay_test(group_name, opts)
   local options = opts or {}
   local group = find_group(group_name)
@@ -506,8 +529,10 @@ local function run_delay_test(group_name, opts)
     .. "&timeout=5000"
 
   request("GET", path, auth_headers(), nil, function(res)
+    local tested = false
     if res.status == 504 then
       apply_group_delays(group_name, {}, true)
+      tested = true
     elseif success(res) then
       local data = decode(res.body)
       if data then
@@ -516,7 +541,11 @@ local function run_delay_test(group_name, opts)
           by_name[tostring(name)] = tonumber(delay)
         end
         apply_group_delays(group_name, by_name, false)
+        tested = true
       end
+    end
+    if tested then
+      notify_delay_result(group_name)
     end
     if not options.internal then
       finish_testing()

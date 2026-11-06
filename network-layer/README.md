@@ -10,9 +10,9 @@ It is intentionally narrower than `mihomo-control`:
 - update HTTP subscriptions
 - restart Mihomo
 - policy-group selection
-- per-group and all-group latency tests
+- per-group and all-group latency tests with completion notifications
 - live traffic with an optional graph
-- bar icon reflecting controller connection state
+- bar icon reflecting controller + TUN state (struck-through otherwise)
 
 It does **not** include controller profiles, connection lists, group reordering
 or shortcuts. DNS controls are reserved as a separate extension hook inside
