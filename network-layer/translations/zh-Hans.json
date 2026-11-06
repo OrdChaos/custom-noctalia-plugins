@@ -83,7 +83,10 @@
     "dns_applied": "已生效：{mode}",
     "dns_pending": "切换中…",
     "dns_error": "DNS 模式切换失败",
-    "dns_unknown": "等待主机应用"
+    "dns_unknown": "等待主机应用",
+    "dns_smartdns_running": "SmartDNS 运行中",
+    "dns_smartdns_stopped": "SmartDNS 未运行",
+    "dns_smartdns_unknown": "SmartDNS 状态未知"
   },
   "notify": {
     "delay_done": "测速完成",

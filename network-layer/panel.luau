@@ -148,7 +148,7 @@ local function card_title(text)
   })
 end
 
-local function card(children, flexGrow)
+local function card(children, flexGrow, height)
   return ui.column({
     fill = "surface_container",
     border = "outline_variant",
@@ -157,6 +157,7 @@ local function card(children, flexGrow)
     padding = 12,
     gap = 10,
     flexGrow = flexGrow or 0,
+    height = height,
   }, children)
 end
 
@@ -252,17 +253,6 @@ local function traffic_controls()
   local traffic = snapshot.traffic
   local down = tonumber(traffic.down) or 0
   local up = tonumber(traffic.up) or 0
-  local peak = 1
-  for _, value in ipairs(down_history) do
-    if value > peak then
-      peak = value
-    end
-  end
-  for _, value in ipairs(up_history) do
-    if value > peak then
-      peak = value
-    end
-  end
 
   local children = {
     ui.row({ align = "center", justify = "space_between" }, {
@@ -276,21 +266,9 @@ local function traffic_controls()
       ui.label({ text = `{noctalia.tr("panel.down_total")}  {format_total(traffic.downTotal)}`, color = "on_surface_variant", fontSize = 13 }),
       ui.label({ text = `{noctalia.tr("panel.up_total")}  {format_total(traffic.upTotal)}`, color = "on_surface_variant", fontSize = 13 }),
     }),
-    ui.spacer({ flexGrow = 1 }),
-    ui.graph({
-      values = normalized(down_history, peak),
-      values2 = normalized(up_history, peak),
-      color = "primary",
-      color2 = "secondary",
-      lineWidth = 2,
-      fillOpacity = 0.12,
-      height = 56,
-    }),
-    ui.spacer({ flexGrow = 1 }),
   }
-  return card(children, 1)
+  return card(children, 0, 104)
 end
-
 local function controls_column(online)
   local updating = snapshot.subscriptions.updating == true
   return ui.column({ gap = 8, flexGrow = 1 }, {
@@ -486,6 +464,17 @@ local function dns_mode_label(mode)
   return mode
 end
 
+local function dns_health_status()
+  local health = tostring((snapshot.dns or {}).health or "unknown")
+  if health == "running" then
+    return noctalia.tr("panel.dns_smartdns_running"), "primary"
+  end
+  if health == "stopped" then
+    return noctalia.tr("panel.dns_smartdns_stopped"), "error"
+  end
+  return noctalia.tr("panel.dns_smartdns_unknown"), "on_surface_variant"
+end
+
 local function dns_status()
   local dns = snapshot.dns or {}
   local mode = dns.mode == "dhcp" and "dhcp" or "fixed"
@@ -566,9 +555,11 @@ local function dns_controls()
   end
 
   local status_text, status_color = dns_status()
+  local health_text, health_color = dns_health_status()
   return card({
-    ui.row({ align = "center", justify = "space_between" }, {
+    ui.row({ align = "center", justify = "space_between", gap = 8 }, {
       card_title(noctalia.tr("panel.dns")),
+      ui.label({ text = health_text, fontSize = 12, color = health_color }),
     }),
     ui.column({ gap = 6, align = "stretch" }, {
       ui.row({
@@ -582,21 +573,20 @@ local function dns_controls()
       fontSize = 13,
       color = status_color,
     }),
-  }, 0)
+  }, 1)
 end
 function render()
   local online = snapshot.connection.status == "online"
   local body = {
     ui.row({ gap = 10, align = "stretch" }, {
       mihomo_card(online),
-      traffic_controls(),
+      ui.column({ gap = 10, flexGrow = 1, align = "stretch" }, {
+        traffic_controls(),
+        dns_controls(),
+      }),
     }),
+    groups_card(online),
   }
-  local dns = dns_controls()
-  if dns ~= nil then
-    table.insert(body, dns)
-  end
-  table.insert(body, groups_card(online))
   panel.render(ui.column({ flexGrow = 1, gap = 6 }, {
     ui.row({ align = "center", gap = 8 }, {
       ui.label({ text = noctalia.tr("panel.title"), fontSize = 16, fontWeight = "bold", color = "primary", flexGrow = 1 }),

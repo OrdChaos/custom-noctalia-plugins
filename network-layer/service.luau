@@ -18,6 +18,7 @@ local PROXIES_INLINE_DECODE_LIMIT = 65536
 local DNS_MODE_FILE = "/var/lib/guixcfg-dns/mode"
 local DNS_APPLIED_FILE = "/run/guixcfg-dns/applied"
 local DNS_STATUS_FILE = "/run/guixcfg-dns/status"
+local DNS_HEALTH_FILE = "/run/guixcfg-dns/smartdns-status"
 
 local settings = {
   host = "127.0.0.1",
@@ -130,7 +131,7 @@ local state = {
   groups = {},
   subscriptions = { updating = false },
   testing = { active = false, group = "" },
-  dns = { mode = "fixed", applied = "", status = "unknown" },
+  dns = { mode = "fixed", applied = "", status = "unknown", health = "unknown" },
 }
 
 local function publish(key)
@@ -160,21 +161,23 @@ local function poll_dns_state()
   local mode_raw = read_dns_file(DNS_MODE_FILE)
   local applied_raw = read_dns_file(DNS_APPLIED_FILE)
   local status_raw = read_dns_file(DNS_STATUS_FILE)
+  local health_raw = read_dns_file(DNS_HEALTH_FILE)
 
   local mode = mode_raw == "dhcp" and "dhcp" or "fixed"
   local applied = applied_raw == "dhcp" and "dhcp" or (applied_raw == "fixed" and "fixed" or "")
   local status = status_raw or "unknown"
-  local next_state = { mode = mode, applied = applied, status = status }
+  local health = (health_raw == "running" or health_raw == "stopped") and health_raw or "unknown"
+  local next_state = { mode = mode, applied = applied, status = status, health = health }
   local current = state.dns
   if current == nil
       or current.mode ~= next_state.mode
       or current.applied ~= next_state.applied
-      or current.status ~= next_state.status then
+      or current.status ~= next_state.status
+      or current.health ~= next_state.health then
     state.dns = next_state
     publish("dns")
   end
 end
-
 local function set_online()
   local changed = state.connection.status ~= "online" or state.connection.error ~= ""
   state.connection.status = "online"
@@ -760,13 +763,14 @@ local function handle_command(cmd)
     -- root applier validates it and switches SmartDNS.
     local ok, err = noctalia.writeFile(DNS_MODE_FILE, mode .. "\n")
     if ok then
-      state.dns = { mode = mode, applied = state.dns.applied, status = "pending" }
+      state.dns = { mode = mode, applied = state.dns.applied, status = "pending", health = state.dns.health }
       publish("dns")
     else
       state.dns = {
         mode = state.dns.mode,
         applied = state.dns.applied,
         status = "error: " .. tostring(err or "write failed"),
+        health = state.dns.health,
       }
       publish("dns")
     end

@@ -41,7 +41,7 @@ The DNS card writes the host mode file directly:
 
 No custom CLI is installed. The root applier watches that file, validates it,
 switches `/run/guixcfg-dns/smartdns.conf`, and restarts SmartDNS. The plugin
-reads `/run/guixcfg-dns/applied` and `/run/guixcfg-dns/status` for feedback.
+reads `/run/guixcfg-dns/applied`, `status`, and `smartdns-status` for feedback.
 
 - `fixed`: only DoH
 - `dhcp`: only NetworkManager dnsmasq/DHCP DNS

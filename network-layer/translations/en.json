@@ -83,7 +83,10 @@
     "dns_applied": "Applied: {mode}",
     "dns_pending": "Applying…",
     "dns_error": "DNS mode change failed",
-    "dns_unknown": "Waiting for host"
+    "dns_unknown": "Waiting for host",
+    "dns_smartdns_running": "SmartDNS running",
+    "dns_smartdns_stopped": "SmartDNS stopped",
+    "dns_smartdns_unknown": "SmartDNS unknown"
   },
   "notify": {
     "delay_done": "Latency test complete",
