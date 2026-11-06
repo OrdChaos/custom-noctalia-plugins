@@ -1,17 +1,12 @@
 --!nonstrict
 -- Network Layer panel.
 --
--- Native Noctalia cards, not custom containers: one Mihomo card contains
--- the controller, TUN/actions, traffic and policy groups as nested cards.
--- A future DNS card is a sibling of the Mihomo card, not a child.
---
--- All buttons use the normal variant; only the native toggle keeps its
--- accent. Selecting a group is never disabled by a latency test.
+-- One Mihomo card, no nested cards: the top half is a two-column control
+-- surface, the bottom half is a two-column policy-group grid. A future DNS
+-- card is the only sibling of the Mihomo card.
 
 local PLUGIN_ID = "ordchaos/network-layer"
 local TRAFFIC_HISTORY = 60
-local CARD_RADIUS = 12
-local SUB_CARD_RADIUS = 9
 
 local snapshot = {
   connection = {},
@@ -132,17 +127,6 @@ local function refresh_snapshot()
   record_traffic()
 end
 
-local function card(children, nested)
-  return ui.column({
-    fill = nested and "surface" or "surface_container",
-    radius = nested and SUB_CARD_RADIUS or CARD_RADIUS,
-    padding = nested and 10 or 12,
-    gap = nested and 8 or 10,
-    border = "outline_variant",
-    borderWidth = 1,
-  }, children)
-end
-
 local function section_title(text)
   return ui.label({
     text = text,
@@ -152,27 +136,7 @@ local function section_title(text)
   })
 end
 
-local function sub_section_title(text)
-  return ui.label({
-    text = text,
-    fontSize = 12,
-    fontWeight = "bold",
-    color = "on_surface_variant",
-  })
-end
-
-local function kv_row(label, value)
-  return ui.row({
-    align = "center",
-    justify = "space_between",
-    gap = 12,
-  }, {
-    ui.label({ text = label, color = "on_surface_variant", fontSize = 11 }),
-    ui.label({ text = value, fontSize = 12 }),
-  })
-end
-
-local function status_label()
+local function status_text()
   local status = snapshot.connection.status
   if status == "online" then
     return noctalia.tr("panel.connected")
@@ -183,29 +147,7 @@ local function status_label()
   return noctalia.tr("panel.offline")
 end
 
-local function status_row()
-  local conn = snapshot.connection
-  local online = conn.status == "online"
-  local detail = { status_label() }
-  if not online and tostring(conn.error or "") ~= "" then
-    table.insert(detail, tostring(conn.error))
-  end
-  return ui.row({ align = "center", gap = 8 }, {
-    ui.glyph({
-      name = online and "route" or "route-off",
-      size = 16,
-      color = online and "primary" or "error",
-    }),
-    ui.label({
-      text = table.concat(detail, " · "),
-      fontSize = 12,
-      fontWeight = "medium",
-      color = online and "on_surface" or "error",
-    }),
-  })
-end
-
-local function traffic_card()
+local function traffic_controls()
   local traffic = snapshot.traffic
   local down = tonumber(traffic.down) or 0
   local up = tonumber(traffic.up) or 0
@@ -223,7 +165,7 @@ local function traffic_card()
 
   local children = {
     ui.row({ align = "center", justify = "space_between" }, {
-      sub_section_title(noctalia.tr("panel.traffic")),
+      section_title(noctalia.tr("panel.traffic")),
       ui.button({
         glyph = "chart-line",
         variant = "ghost",
@@ -252,117 +194,20 @@ local function traffic_card()
       color2 = "secondary",
       lineWidth = 2,
       fillOpacity = 0.12,
-      height = 56,
+      height = 48,
     }))
   end
-  return card(children, true)
+  return ui.column({ gap = 6, flexGrow = 1 }, children)
 end
 
-local function group_node(group, online)
-  local testing = snapshot.testing.active == true
-  local selected = 0
-  local options = {}
-  for index, member in ipairs(group.members) do
-    local label = member.name
-    if member.delay ~= nil then
-      label = `{label} · {latency_text(member.delay)}`
-    end
-    options[index] = label
-    if group.now == member.name then
-      selected = index - 1
-    end
-  end
-
-  local selectable = group.type == "Selector" and #group.members > 0
-  local delay = group_latency(group)
-  local children = {
-    ui.row({ align = "center", gap = 8 }, {
-      ui.label({ text = group.name, fontSize = 12, fontWeight = "medium", flexGrow = 1 }),
-      ui.label({ text = latency_text(delay), fontSize = 12, color = latency_color(delay) }),
-      ui.button({
-        glyph = "bolt",
-        variant = "ghost",
-        controlSize = "sm",
-        enabled = online and not testing and #group.members > 0,
-        tooltip = noctalia.tr("panel.test"),
-        onClick = function()
-          send_command({ op = "test_group", group = group.name })
-        end,
-      }),
-    }),
-  }
-
-  if selectable then
-    table.insert(children, ui.select({
-      key = `group-{group.name}`,
-      options = options,
-      selectedIndex = selected,
-      controlSize = "sm",
-      enabled = online,
-      onChange = function(index_text)
-        local index = (tonumber(index_text) or 0) + 1
-        local member = group.members[index]
-        if member ~= nil then
-          send_command({ op = "select", group = group.name, proxy = member.name })
-        end
-      end,
-    }))
-  else
-    table.insert(children, ui.label({
-      text = group.now ~= nil and group.now or noctalia.tr("panel.no_groups"),
-      color = "on_surface_variant",
-      fontSize = 11,
-    }))
-  end
-
-  return ui.column({ gap = 4 }, children)
-end
-
-local function groups_card(online)
-  local testing = snapshot.testing.active == true
-  local children = {
-    ui.row({ align = "center", justify = "space_between" }, {
-      sub_section_title(noctalia.tr("panel.groups")),
-      ui.button({
-        text = testing and noctalia.tr("panel.testing") or noctalia.tr("panel.test_all"),
-        variant = "default",
-        controlSize = "sm",
-        enabled = online and not testing and #snapshot.groups > 0,
-        onClick = function()
-          send_command({ op = "test_all" })
-        end,
-      }),
-    }),
-  }
-
-  if #snapshot.groups == 0 then
-    table.insert(children, ui.label({
-      text = noctalia.tr("panel.no_groups"),
-      color = "on_surface_variant",
-      fontSize = 11,
-    }))
-    return card(children, true)
-  end
-
-  for _, group in ipairs(snapshot.groups) do
-    table.insert(children, group_node(group, online))
-  end
-  return card(children, true)
-end
-
-local function mihomo_card(online)
-  local conn = snapshot.connection
-  local version = tostring(conn.version or "")
-  local endpoint = `{conn.host or "—"}:{conn.port or "—"}`
+local function controls_column(online)
   local updating = snapshot.subscriptions.updating == true
-
-  return card({
-    ui.row({ align = "center", gap = 8 }, {
-      section_title("Mihomo"),
-      ui.label({ text = version ~= "" and version or "—", fontSize = 11, color = "on_surface_variant", flexGrow = 1, textAlign = "end" }),
+  return ui.column({ gap = 8, flexGrow = 1 }, {
+    ui.label({
+      text = `{snapshot.connection.host or "—"}:{snapshot.connection.port or "—"}`,
+      fontSize = 11,
+      color = "on_surface_variant",
     }),
-    status_row(),
-    kv_row(noctalia.tr("panel.endpoint"), endpoint),
     ui.row({ align = "center", justify = "space_between", gap = 12 }, {
       ui.label({ text = noctalia.tr("panel.tun"), fontSize = 12 }),
       ui.toggle({
@@ -395,9 +240,147 @@ local function mihomo_card(online)
         end,
       }),
     }),
-    traffic_card(),
-    groups_card(online),
-  }, false)
+  })
+end
+
+local function group_cell(group, online)
+  local testing = snapshot.testing.active == true
+  local selected = 0
+  local options = {}
+  for index, member in ipairs(group.members) do
+    local label = member.name
+    if member.delay ~= nil then
+      label = `{label} · {latency_text(member.delay)}`
+    end
+    options[index] = label
+    if group.now == member.name then
+      selected = index - 1
+    end
+  end
+
+  local delay = group_latency(group)
+  local children = {
+    ui.row({ align = "center", gap = 8 }, {
+      ui.label({ text = group.name, fontSize = 12, fontWeight = "medium", flexGrow = 1 }),
+      ui.label({ text = latency_text(delay), fontSize = 12, color = latency_color(delay) }),
+      ui.button({
+        glyph = "bolt",
+        variant = "ghost",
+        controlSize = "sm",
+        enabled = online and not testing and #group.members > 0,
+        tooltip = noctalia.tr("panel.test"),
+        onClick = function()
+          send_command({ op = "test_group", group = group.name })
+        end,
+      }),
+    }),
+  }
+
+  if group.type == "Selector" and #group.members > 0 then
+    table.insert(children, ui.select({
+      key = `group-{group.name}`,
+      options = options,
+      selectedIndex = selected,
+      controlSize = "sm",
+      enabled = online,
+      onChange = function(index_text)
+        local index = (tonumber(index_text) or 0) + 1
+        local member = group.members[index]
+        if member ~= nil then
+          send_command({ op = "select", group = group.name, proxy = member.name })
+        end
+      end,
+    }))
+  else
+    table.insert(children, ui.label({
+      text = group.now ~= nil and group.now or noctalia.tr("panel.no_groups"),
+      color = "on_surface_variant",
+      fontSize = 11,
+    }))
+  end
+
+  return ui.column({ gap = 4, flexGrow = 1 }, children)
+end
+
+local function groups_grid(online)
+  local testing = snapshot.testing.active == true
+  local children = {
+    ui.row({ align = "center", justify = "space_between" }, {
+      section_title(noctalia.tr("panel.groups")),
+      ui.button({
+        text = testing and noctalia.tr("panel.testing") or noctalia.tr("panel.test_all"),
+        variant = "default",
+        controlSize = "sm",
+        enabled = online and not testing and #snapshot.groups > 0,
+        onClick = function()
+          send_command({ op = "test_all" })
+        end,
+      }),
+    }),
+  }
+
+  if #snapshot.groups == 0 then
+    table.insert(children, ui.label({
+      text = noctalia.tr("panel.no_groups"),
+      color = "on_surface_variant",
+      fontSize = 11,
+    }))
+    return ui.column({ gap = 8 }, children)
+  end
+
+  local row = {}
+  for index, group in ipairs(snapshot.groups) do
+    table.insert(row, group_cell(group, online))
+    if #row == 2 or index == #snapshot.groups then
+      if #row == 1 then
+        table.insert(row, ui.column({ flexGrow = 1 }))
+      end
+      table.insert(children, ui.row({ gap = 14, align = "start" }, row))
+      row = {}
+    end
+  end
+  return ui.column({ gap = 10 }, children)
+end
+
+local function mihomo_card(online)
+  local conn = snapshot.connection
+  local version = tostring(conn.version or "")
+  local error_text = tostring(conn.error or "")
+  local status = status_text()
+  if not online and error_text ~= "" then
+    status = `{status} · {error_text}`
+  end
+
+  return ui.column({
+    fill = "surface_container",
+    radius = 12,
+    padding = 14,
+    gap = 12,
+    border = "outline_variant",
+    borderWidth = 1,
+  }, {
+    ui.row({ align = "center", gap = 8 }, {
+      section_title("Mihomo"),
+      ui.glyph({
+        name = online and "route" or "route-off",
+        size = 14,
+        color = online and "primary" or "error",
+      }),
+      ui.label({ text = status, fontSize = 12, color = online and "on_surface" or "error" }),
+      ui.label({
+        text = version ~= "" and version or "—",
+        fontSize = 11,
+        color = "on_surface_variant",
+        flexGrow = 1,
+        textAlign = "end",
+      }),
+    }),
+    ui.row({ gap = 24, align = "start" }, {
+      controls_column(online),
+      traffic_controls(),
+    }),
+    groups_grid(online),
+  })
 end
 
 -- DNS extension hook. Return a native card (sibling of the Mihomo card) from
@@ -414,7 +397,7 @@ function render()
     table.insert(body, dns)
   end
 
-  panel.render(ui.column({ flexGrow = 1, gap = 10 }, {
+  panel.render(ui.column({ flexGrow = 1, gap = 10, padding = 14 }, {
     ui.row({ align = "center", gap = 8 }, {
       ui.label({ text = noctalia.tr("panel.title"), fontSize = 15, fontWeight = "bold", flexGrow = 1 }),
       ui.button({
