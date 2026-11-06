@@ -130,7 +130,7 @@ end
 local function section_title(text)
   return ui.label({
     text = text,
-    fontSize = 12,
+    fontSize = 14,
     fontWeight = "bold",
     color = "on_surface",
   })
@@ -214,12 +214,12 @@ local function traffic_controls()
       }),
     }),
     ui.row({ justify = "space_between" }, {
-      ui.label({ text = `{noctalia.tr("panel.down")}  {format_rate(down)}`, color = "primary", fontSize = 12 }),
-      ui.label({ text = `{noctalia.tr("panel.up")}  {format_rate(up)}`, color = "secondary", fontSize = 12 }),
+      ui.label({ text = `{noctalia.tr("panel.down")}  {format_rate(down)}`, color = "primary", fontSize = 14 }),
+      ui.label({ text = `{noctalia.tr("panel.up")}  {format_rate(up)}`, color = "secondary", fontSize = 14 }),
     }),
     ui.row({ justify = "space_between" }, {
-      ui.label({ text = `{noctalia.tr("panel.down_total")}  {format_total(traffic.downTotal)}`, color = "on_surface_variant", fontSize = 11 }),
-      ui.label({ text = `{noctalia.tr("panel.up_total")}  {format_total(traffic.upTotal)}`, color = "on_surface_variant", fontSize = 11 }),
+      ui.label({ text = `{noctalia.tr("panel.down_total")}  {format_total(traffic.downTotal)}`, color = "on_surface_variant", fontSize = 13 }),
+      ui.label({ text = `{noctalia.tr("panel.up_total")}  {format_total(traffic.upTotal)}`, color = "on_surface_variant", fontSize = 13 }),
     }),
   }
   if traffic_open then
@@ -241,11 +241,11 @@ local function controls_column(online)
   return ui.column({ gap = 8, flexGrow = 1 }, {
     ui.label({
       text = `{snapshot.connection.host or "—"}:{snapshot.connection.port or "—"}`,
-      fontSize = 11,
+      fontSize = 13,
       color = "on_surface_variant",
     }),
     ui.row({ align = "center", justify = "space_between", gap = 12 }, {
-      ui.label({ text = noctalia.tr("panel.tun"), fontSize = 12 }),
+      ui.label({ text = noctalia.tr("panel.tun"), fontSize = 14 }),
       ui.toggle({
         checked = snapshot.config.tunEnabled == true,
         enabled = online,
@@ -297,8 +297,8 @@ local function group_cell(group, online)
   local delay = group_latency(group)
   local children = {
     ui.row({ align = "center", gap = 8 }, {
-      ui.label({ text = group.name, fontSize = 12, fontWeight = "medium", flexGrow = 1 }),
-      ui.label({ text = latency_text(delay), fontSize = 12, color = latency_color(delay) }),
+      ui.label({ text = group.name, fontSize = 14, fontWeight = "medium", flexGrow = 1 }),
+      ui.label({ text = latency_text(delay), fontSize = 13, color = latency_color(delay) }),
       ui.button({
         glyph = "bolt",
         variant = "ghost",
@@ -331,7 +331,7 @@ local function group_cell(group, online)
     table.insert(children, ui.label({
       text = group.now ~= nil and group.now or noctalia.tr("panel.no_groups"),
       color = "on_surface_variant",
-      fontSize = 11,
+      fontSize = 13,
     }))
   end
 
@@ -359,7 +359,7 @@ local function groups_grid(online)
     table.insert(children, ui.label({
       text = noctalia.tr("panel.no_groups"),
       color = "on_surface_variant",
-      fontSize = 11,
+      fontSize = 13,
     }))
     return ui.column({ gap = 8 }, children)
   end
@@ -402,10 +402,10 @@ local function mihomo_card(online)
         size = 14,
         color = online and "primary" or "error",
       }),
-      ui.label({ text = status, fontSize = 12, color = online and "on_surface" or "error" }),
+      ui.label({ text = status, fontSize = 14, color = online and "on_surface" or "error" }),
       ui.label({
         text = version ~= "" and version or "—",
-        fontSize = 11,
+        fontSize = 13,
         color = "on_surface_variant",
         flexGrow = 1,
         textAlign = "end",
@@ -436,7 +436,7 @@ function render()
 
   panel.render(ui.column({ flexGrow = 1, gap = 6 }, {
     ui.row({ align = "center", gap = 8 }, {
-      ui.label({ text = noctalia.tr("panel.title"), fontSize = 15, fontWeight = "bold", flexGrow = 1 }),
+      ui.label({ text = noctalia.tr("panel.title"), fontSize = 16, fontWeight = "bold", flexGrow = 1 }),
       ui.button({
         glyph = "close",
         variant = "ghost",
