@@ -9,7 +9,7 @@
 [[plugin]]
 id = "mdj2812/mihomo-control"
 name = "Mihomo Control (Custom)"
-version = "0.2.3"
+version = "0.2.4"
 updated_at = 1793758219
 added_at = 1787899773
 author = "mdj2812"
@@ -22,8 +22,8 @@ tags = ["network", "indicator", "utility", "bar", "panel", "service", "shortcut"
 [[plugin]]
 id = "ordchaos/network-layer"
 name = "Network Layer"
-version = "0.2.3"
-updated_at = 1793984000
+version = "0.2.4"
+updated_at = 1793985000
 added_at = 1793963000
 author = "OrdChaos"
 license = "MIT"
