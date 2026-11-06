@@ -236,7 +236,7 @@ local function mode_selector(online)
       }))
     end
   end
-  return ui.column({ gap = 6 }, {
+  return ui.column({ gap = 6, align = "stretch" }, {
     section_title(noctalia.tr("panel.mode")),
     ui.row({
       gap = 0,
