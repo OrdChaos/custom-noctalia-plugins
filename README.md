@@ -15,7 +15,8 @@ needs, so it can be used as a standalone path or git source.
 `ordchaos/network-layer` is a new, native-UI control surface for the host
 network. It provides exactly:
 
-- controller connection state, version and endpoint;
+- controller state, version and endpoint;
+- direct / proxy / global mode selector;
 - TUN on/off;
 - update HTTP subscriptions;
 - restart Mihomo;
@@ -24,9 +25,9 @@ network. It provides exactly:
 - live traffic plus an optional graph;
 - a bar icon showing controller connectivity.
 
-It deliberately omits proxy mode switches, controller profiles, connection
-lists, group reordering and shortcuts. DNS controls have a dedicated extension
-hook in the panel and are not implemented in this plugin yet.
+It deliberately omits controller profiles, connection lists, group reordering
+and shortcuts. DNS controls have a dedicated extension hook in the panel and
+are not implemented in this plugin yet.
 
 It uses only native `ui.*` controls and the standard status-icon pipeline.
 The service owns HTTP and publishes a single `network.*` state namespace.

@@ -147,6 +147,42 @@ local function status_text()
   return noctalia.tr("panel.offline")
 end
 
+local MODES = {
+  { value = "direct", key = "panel.mode_direct", glyph = "arrow-up-right" },
+  { value = "rule", key = "panel.mode_rule", glyph = "route" },
+  { value = "global", key = "panel.mode_global", glyph = "world" },
+}
+
+-- Same visual idea as Control Center -> Power -> power profile: one
+-- equal-width segmented row on a Surface lane, not a dropdown.
+local function mode_selector(online)
+  local current = tostring(snapshot.config.mode or "rule")
+  local buttons = {}
+  for _, mode in ipairs(MODES) do
+    local selected = current == mode.value
+    table.insert(buttons, ui.button({
+      text = noctalia.tr(mode.key),
+      glyph = mode.glyph,
+      variant = selected and "primary" or "ghost",
+      controlSize = "sm",
+      flexGrow = 1,
+      enabled = online,
+      onClick = function()
+        send_command({ op = "mode", mode = mode.value })
+      end,
+    }))
+  end
+  return ui.column({ gap = 6 }, {
+    section_title(noctalia.tr("panel.mode")),
+    ui.row({
+      gap = 2,
+      padding = 2,
+      fill = "surface",
+      radius = 6,
+    }, buttons),
+  })
+end
+
 local function traffic_controls()
   local traffic = snapshot.traffic
   local down = tonumber(traffic.down) or 0
@@ -354,10 +390,8 @@ local function mihomo_card(online)
   return ui.column({
     fill = "surface_container",
     radius = 12,
-    padding = 14,
-    gap = 12,
-    border = "outline_variant",
-    borderWidth = 1,
+    padding = 12,
+    gap = 10,
   }, {
     ui.row({ align = "center", gap = 8 }, {
       section_title("Mihomo"),
@@ -375,7 +409,8 @@ local function mihomo_card(online)
         textAlign = "end",
       }),
     }),
-    ui.row({ gap = 24, align = "start" }, {
+    mode_selector(online),
+    ui.row({ gap = 16, align = "start" }, {
       controls_column(online),
       traffic_controls(),
     }),
@@ -397,7 +432,7 @@ function render()
     table.insert(body, dns)
   end
 
-  panel.render(ui.column({ flexGrow = 1, gap = 10, padding = 14 }, {
+  panel.render(ui.column({ flexGrow = 1, gap = 8, padding = 8 }, {
     ui.row({ align = "center", gap = 8 }, {
       ui.label({ text = noctalia.tr("panel.title"), fontSize = 15, fontWeight = "bold", flexGrow = 1 }),
       ui.button({

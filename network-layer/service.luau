@@ -120,7 +120,7 @@ local state = {
     meta = false,
     error = "",
   },
-  config = { tunEnabled = false },
+  config = { mode = "rule", tunEnabled = false },
   traffic = { up = 0, down = 0, upTotal = 0, downTotal = 0 },
   groups = {},
   subscriptions = { updating = false },
@@ -344,6 +344,9 @@ local function poll_configs()
     end
     local tun = data.tun
     state.config.tunEnabled = type(tun) == "table" and tun.enable == true
+    if type(data.mode) == "string" then
+      state.config.mode = data.mode
+    end
     publish("config")
   end)
 end
@@ -620,6 +623,20 @@ local function handle_command(cmd)
     request("PATCH", "/configs", json_headers(), { tun = { enable = enabled } }, function(res)
       if success(res) then
         state.config.tunEnabled = enabled
+        publish("config")
+      end
+      poll_configs()
+    end)
+    return
+  end
+  if op == "mode" then
+    local mode = tostring(cmd.mode or "")
+    if mode ~= "rule" and mode ~= "global" and mode ~= "direct" then
+      return
+    end
+    request("PATCH", "/configs", json_headers(), { mode = mode }, function(res)
+      if success(res) then
+        state.config.mode = mode
         publish("config")
       end
       poll_configs()

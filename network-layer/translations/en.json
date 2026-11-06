@@ -73,6 +73,10 @@
     "no_groups": "No policy groups",
     "timeout": "Timeout",
     "untested": "—",
-    "dns": "DNS"
+    "dns": "DNS",
+    "mode": "Mode",
+    "mode_direct": "Direct",
+    "mode_rule": "Proxy",
+    "mode_global": "Global"
   }
 }

@@ -5,6 +5,7 @@ A native Noctalia network layer for the bar and a control panel.
 It is intentionally narrower than `mihomo-control`:
 
 - controller connection status, version and endpoint
+- direct / proxy / global mode selector
 - TUN on/off
 - update HTTP subscriptions
 - restart Mihomo
@@ -13,18 +14,18 @@ It is intentionally narrower than `mihomo-control`:
 - live traffic with an optional graph
 - bar icon reflecting controller connection state
 
-It does **not** include proxy mode switching, controller profiles, connection
-lists, group reordering or shortcuts. DNS controls are reserved as a separate
-extension hook inside the panel.
+It does **not** include controller profiles, connection lists, group reordering
+or shortcuts. DNS controls are reserved as a separate extension hook inside
+the panel.
 
 ## UI
 
-The panel uses Noctalia's own `ui.*` vocabulary only: cards built from native
-containers, labels, toggles, buttons, selects, a graph and one scroll
-container. The Mihomo card owns the controller, TUN/actions, traffic and
-policy groups; traffic and groups are nested cards, not parallel sections.
-The widget uses the standard status-icon pipeline (`route` / `route-off`).
-All buttons use the normal variant; only the native toggle keeps its accent.
+The panel uses Noctalia's own `ui.*` vocabulary only: one native Mihomo card,
+a segmented mode row, labels, toggles, buttons, selects, a graph and one
+scroll container. Traffic and policy groups live inside the same card; there
+are no nested cards. The mode selector follows Control Center's power-profile
+segmented control rather than a dropdown. The widget uses the standard
+status-icon pipeline (`route` / `route-off`).
 
 The panel is a subscriber. All HTTP work belongs to `service.luau`, which
 publishes one `network.*` state namespace. Actions flow back through

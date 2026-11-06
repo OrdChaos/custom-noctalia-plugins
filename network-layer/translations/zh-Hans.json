@@ -73,6 +73,10 @@
     "no_groups": "没有策略组",
     "timeout": "超时",
     "untested": "—",
-    "dns": "DNS"
+    "dns": "DNS",
+    "mode": "模式",
+    "mode_direct": "直连",
+    "mode_rule": "代理",
+    "mode_global": "全局"
   }
 }
