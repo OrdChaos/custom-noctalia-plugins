@@ -78,7 +78,7 @@
     "mode_direct": "Direct",
     "mode_rule": "Proxy",
     "mode_global": "Global",
-    "dns_fixed": "Fixed DNS · DoH",
+    "dns_fixed": "Fixed DoH",
     "dns_dhcp": "DHCP DNS",
     "dns_applied": "Applied: {mode}",
     "dns_pending": "Applying…",
