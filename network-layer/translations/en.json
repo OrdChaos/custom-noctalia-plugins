@@ -81,7 +81,7 @@
   },
   "notify": {
     "delay_done": "Latency test complete",
-    "delay_selected": "Selected {node} - {latency}",
+    "delay_selected": "Selected {selection}",
     "delay_timeout_value": "timeout"
   }
 }

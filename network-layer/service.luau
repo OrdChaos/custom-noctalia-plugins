@@ -479,26 +479,83 @@ local function finish_testing()
   publish("testing")
 end
 
-local function notify_delay_result(group_name)
-  local group = find_group(group_name)
-  if group == nil or group.now == nil or group.now == "" then
-    return
+local function notify_selection_path()
+  local by_name = {}
+  for _, group in ipairs(state.groups) do
+    by_name[group.name] = group
   end
-  local selected = group.now
-  local delay = nil
-  for _, member in ipairs(group.members) do
-    if member.name == selected then
-      delay = member.delay
-      break
+
+  -- A root group is one that is not selected by another group. Expand each
+  -- root's current selection until it reaches a real node, e.g.
+  -- GLOBAL|PROXY - PROXY|edge - edge|Hysteria2.
+  local referenced = {}
+  for _, group in ipairs(state.groups) do
+    for _, member in ipairs(group.members) do
+      if by_name[member.name] ~= nil then
+        referenced[member.name] = true
+      end
     end
   end
-  if delay == nil then
+
+  local roots = {}
+  for _, group in ipairs(state.groups) do
+    if referenced[group.name] ~= true then
+      table.insert(roots, group.name)
+    end
+  end
+  if #roots == 0 then
+    for _, group in ipairs(state.groups) do
+      table.insert(roots, group.name)
+    end
+  end
+
+  local paths = {}
+  for _, root in ipairs(roots) do
+    local current = root
+    local seen = {}
+    local parts = {}
+    local final_delay = nil
+
+    while current ~= nil and seen[current] ~= true do
+      seen[current] = true
+      local group = by_name[current]
+      if group == nil then
+        break
+      end
+      local selected = group.now
+      if selected == nil or selected == "" then
+        break
+      end
+      table.insert(parts, `{current}|{selected}`)
+      if by_name[selected] ~= nil and seen[selected] ~= true then
+        current = selected
+      else
+        for _, member in ipairs(group.members) do
+          if member.name == selected then
+            final_delay = member.delay
+            break
+          end
+        end
+        break
+      end
+    end
+
+    if #parts > 0 then
+      local line = table.concat(parts, " - ")
+      if final_delay ~= nil then
+        line = line
+          .. (final_delay > 0 and ` - {final_delay} ms` or ` - {noctalia.tr("notify.delay_timeout_value")}`)
+      end
+      table.insert(paths, line)
+    end
+  end
+
+  if #paths == 0 then
     return
   end
-  local latency = delay > 0 and `{delay} ms` or noctalia.tr("notify.delay_timeout_value")
   noctalia.notify(
     noctalia.tr("notify.delay_done"),
-    noctalia.tr("notify.delay_selected", { node = selected, latency = latency })
+    noctalia.tr("notify.delay_selected", { selection = table.concat(paths, " - ") })
   )
 end
 
@@ -529,10 +586,8 @@ local function run_delay_test(group_name, opts)
     .. "&timeout=5000"
 
   request("GET", path, auth_headers(), nil, function(res)
-    local tested = false
     if res.status == 504 then
       apply_group_delays(group_name, {}, true)
-      tested = true
     elseif success(res) then
       local data = decode(res.body)
       if data then
@@ -541,14 +596,11 @@ local function run_delay_test(group_name, opts)
           by_name[tostring(name)] = tonumber(delay)
         end
         apply_group_delays(group_name, by_name, false)
-        tested = true
       end
-    end
-    if tested then
-      notify_delay_result(group_name)
     end
     if not options.internal then
       finish_testing()
+      notify_selection_path()
     end
     if options.on_done then
       options.on_done()
@@ -574,6 +626,7 @@ local function test_all_groups()
   local function next_group()
     if index > #names then
       finish_testing()
+      notify_selection_path()
       return
     end
     local name = names[index]

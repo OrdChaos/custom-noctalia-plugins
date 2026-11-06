@@ -81,7 +81,7 @@
   },
   "notify": {
     "delay_done": "测速完成",
-    "delay_selected": "当前选中 {node} - {latency}",
+    "delay_selected": "当前选中 {selection}",
     "delay_timeout_value": "超时"
   }
 }
