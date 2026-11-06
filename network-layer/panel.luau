@@ -182,15 +182,37 @@ local function mode_selector(online)
   for index, mode in ipairs(MODES) do
     local selected = current == mode.value
     local hovered = mode_hover == mode.value
+    local fill = selected and "primary" or (hovered and "hover" or "surface")
     local text_color = selected and "on_primary" or (hovered and "on_hover" or "on_surface")
-    table.insert(segments, ui.column({
+    local body = ui.column({
       flexGrow = 1,
       align = "center",
       justify = "center",
       minHeight = 38,
       paddingH = 8,
-      fill = selected and "primary" or (hovered and "hover" or nil),
-      radius = (index == 1 or index == #MODES) and 6 or 0,
+      fill = fill,
+      radius = 0,
+    }, {
+      ui.row({ align = "center", justify = "center", gap = 4 }, {
+        ui.glyph({ name = mode.glyph, size = 13, color = text_color }),
+        ui.label({ text = noctalia.tr(mode.key), fontSize = 13, color = text_color }),
+      }),
+    })
+
+    local parts = {}
+    if index == 1 then
+      table.insert(parts, ui.box({ width = 6, height = 38, fill = fill, radius = 6 }))
+    end
+    table.insert(parts, body)
+    if index == #MODES then
+      table.insert(parts, ui.box({ width = 6, height = 38, fill = fill, radius = 6 }))
+    end
+
+    table.insert(segments, ui.row({
+      flexGrow = 1,
+      minHeight = 38,
+      gap = 0,
+      align = "stretch",
       opacity = online and 1 or 0.55,
       onClick = function()
         if online then
@@ -201,12 +223,8 @@ local function mode_selector(online)
         mode_hover = state == "true" and mode.value or nil
         render()
       end,
-    }, {
-      ui.row({ align = "center", justify = "center", gap = 4 }, {
-        ui.glyph({ name = mode.glyph, size = 13, color = text_color }),
-        ui.label({ text = noctalia.tr(mode.key), fontSize = 13, color = text_color }),
-      }),
-    }))
+    }, parts))
+
     if index < #MODES then
       table.insert(segments, ui.separator({
         orientation = "vertical",

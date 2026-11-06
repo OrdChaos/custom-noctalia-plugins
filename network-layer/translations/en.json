@@ -49,7 +49,7 @@
     "up": "Up"
   },
   "panel": {
-    "title": "Network Layer",
+    "title": "Connection",
     "connected": "Connected",
     "connecting": "Connecting…",
     "offline": "Offline",
