@@ -1,0 +1,70 @@
+{
+  "settings": {
+    "host": {
+      "label": "控制器地址",
+      "description": "Mihomo 外部控制器的地址或 IP。"
+    },
+    "port": {
+      "label": "控制器端口",
+      "description": "Mihomo 外部控制器的端口。"
+    },
+    "secret": {
+      "label": "控制器密钥",
+      "description": "Mihomo 外部控制器的 secret；未启用认证时留空。"
+    },
+    "use_https": {
+      "label": "使用 HTTPS",
+      "description": "通过 HTTPS 连接控制器。"
+    },
+    "allow_insecure_tls": {
+      "label": "允许不安全的 TLS",
+      "description": "跳过自签名控制器的证书校验。"
+    },
+    "test_url": {
+      "label": "测速 URL",
+      "description": "策略组测速使用的 URL；留空则使用每组自己的测速地址。"
+    },
+    "refresh_interval": {
+      "label": "刷新间隔",
+      "description": "控制器状态轮询间隔（秒）。"
+    }
+  },
+  "widget": {
+    "online": "已连接",
+    "connecting": "连接中",
+    "offline": "未连接",
+    "version": "Mihomo {version}",
+    "endpoint": "{host}:{port}",
+    "tun_on": "TUN 已开启",
+    "tun_off": "TUN 已关闭",
+    "down": "下行",
+    "up": "上行"
+  },
+  "panel": {
+    "title": "网络",
+    "connected": "已连接",
+    "connecting": "连接中…",
+    "offline": "未连接",
+    "mihomo": "Mihomo",
+    "version": "版本",
+    "endpoint": "地址",
+    "tun": "TUN 模式",
+    "update_subscriptions": "更新订阅",
+    "updating_subscriptions": "更新中…",
+    "restart": "重启 mihomo",
+    "traffic": "流量",
+    "hide_traffic": "收起流量",
+    "down": "下行",
+    "up": "上行",
+    "down_total": "下行总计",
+    "up_total": "上行总计",
+    "groups": "策略组",
+    "test_all": "全部测速",
+    "test": "测速",
+    "testing": "测速中…",
+    "no_groups": "没有策略组",
+    "timeout": "超时",
+    "untested": "—",
+    "dns": "DNS"
+  }
+}

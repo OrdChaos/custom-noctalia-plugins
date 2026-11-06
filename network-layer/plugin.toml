@@ -1,0 +1,80 @@
+id = "ordchaos/network-layer"
+name = "Network Layer"
+version = "0.1.0"
+plugin_api = 43
+author = "OrdChaos"
+license = "MIT"
+icon = "network"
+description = "A native network layer for the Noctalia bar: Mihomo status, TUN, subscriptions, groups, latency and traffic."
+tags = ["network", "indicator", "utility", "bar", "panel", "service"]
+dependencies = ["jq"]
+
+[[setting]]
+key = "host"
+type = "string"
+default = "127.0.0.1"
+label_key = "settings.host.label"
+description_key = "settings.host.description"
+
+[[setting]]
+key = "port"
+type = "string"
+default = "9090"
+label_key = "settings.port.label"
+description_key = "settings.port.description"
+
+[[setting]]
+key = "secret"
+type = "string"
+default = ""
+label_key = "settings.secret.label"
+description_key = "settings.secret.description"
+
+[[setting]]
+key = "use_https"
+type = "bool"
+default = false
+advanced = true
+label_key = "settings.use_https.label"
+description_key = "settings.use_https.description"
+
+[[setting]]
+key = "allow_insecure_tls"
+type = "bool"
+default = false
+advanced = true
+label_key = "settings.allow_insecure_tls.label"
+description_key = "settings.allow_insecure_tls.description"
+
+[[setting]]
+key = "test_url"
+type = "string"
+default = "https://www.gstatic.com/generate_204"
+label_key = "settings.test_url.label"
+description_key = "settings.test_url.description"
+
+[[setting]]
+key = "refresh_interval"
+type = "int"
+default = 2
+min = 1
+max = 60
+advanced = true
+label_key = "settings.refresh_interval.label"
+description_key = "settings.refresh_interval.description"
+
+[[widget]]
+id = "status"
+entry = "widget.luau"
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 420
+height = 720
+placement = "floating"
+position = "center"
+
+[[service]]
+id = "service"
+entry = "service.luau"

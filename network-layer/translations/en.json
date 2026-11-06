@@ -1,0 +1,70 @@
+{
+  "settings": {
+    "host": {
+      "label": "Controller host",
+      "description": "Hostname or IP address of the Mihomo external controller."
+    },
+    "port": {
+      "label": "Controller port",
+      "description": "Port of the Mihomo external controller."
+    },
+    "secret": {
+      "label": "Controller secret",
+      "description": "Secret from the Mihomo external controller; leave empty when authentication is disabled."
+    },
+    "use_https": {
+      "label": "Use HTTPS",
+      "description": "Connect to the controller over HTTPS."
+    },
+    "allow_insecure_tls": {
+      "label": "Allow insecure TLS",
+      "description": "Skip certificate verification for a self-signed controller."
+    },
+    "test_url": {
+      "label": "Latency test URL",
+      "description": "URL used for policy-group latency tests. Leave empty to use each group's own test URL."
+    },
+    "refresh_interval": {
+      "label": "Refresh interval",
+      "description": "Seconds between controller status polls."
+    }
+  },
+  "widget": {
+    "online": "Connected",
+    "connecting": "Connecting",
+    "offline": "Offline",
+    "version": "Mihomo {version}",
+    "endpoint": "{host}:{port}",
+    "tun_on": "TUN on",
+    "tun_off": "TUN off",
+    "down": "Down",
+    "up": "Up"
+  },
+  "panel": {
+    "title": "Network",
+    "connected": "Connected",
+    "connecting": "Connecting…",
+    "offline": "Offline",
+    "mihomo": "Mihomo",
+    "version": "Version",
+    "endpoint": "Endpoint",
+    "tun": "TUN mode",
+    "update_subscriptions": "Update subscriptions",
+    "updating_subscriptions": "Updating…",
+    "restart": "Restart mihomo",
+    "traffic": "Traffic",
+    "hide_traffic": "Hide traffic",
+    "down": "Down",
+    "up": "Up",
+    "down_total": "Down total",
+    "up_total": "Up total",
+    "groups": "Policy groups",
+    "test_all": "Test all",
+    "test": "Test",
+    "testing": "Testing…",
+    "no_groups": "No policy groups",
+    "timeout": "Timeout",
+    "untested": "—",
+    "dns": "DNS"
+  }
+}

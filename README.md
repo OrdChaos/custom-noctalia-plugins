@@ -1,20 +1,52 @@
 # custom-noctalia-plugins
 
-A minimal Noctalia plugin source containing a single plugin:
-[`mdj2812/mihomo-control`](./mihomo-control/) — a modified fork of the
-`mihomo-control` plugin from
-[`noctalia-dev/community-plugins`](https://github.com/noctalia-dev/community-plugins).
+A minimal Noctalia plugin source containing two plugins:
+
+- [`ordchaos/network-layer`](./network-layer/) — the native host network layer;
+- [`mdj2812/mihomo-control`](./mihomo-control/) — the retained custom fork of
+  the community `mihomo-control` plugin.
 
 This repository is **not** a fork of the whole community-plugins repo. It ships
-only the one plugin directory plus the `catalog.toml` index a Noctalia source
+only the plugin directories plus the `catalog.toml` index a Noctalia source
 needs, so it can be used as a standalone path or git source.
 
-> **Attribution.** The original plugin was written by
+## Network Layer
+
+`ordchaos/network-layer` is a new, native-UI control surface for the host
+network. It provides exactly:
+
+- controller connection state, version and endpoint;
+- TUN on/off;
+- update HTTP subscriptions;
+- restart Mihomo;
+- policy-group selection;
+- per-group and all-group latency tests;
+- live traffic plus an optional graph;
+- a bar icon showing controller connectivity.
+
+It deliberately omits proxy mode switches, controller profiles, connection
+lists, group reordering and shortcuts. DNS controls have a dedicated extension
+hook in the panel and are not implemented in this plugin yet.
+
+It uses only native `ui.*` controls and the standard status-icon pipeline.
+The service owns HTTP and publishes a single `network.*` state namespace.
+`jq` is used only for oversized `/proxies` projection.
+
+Enable from a local path source:
+
+```sh
+noctalia msg plugins source add network-layer-dev path "$PWD"
+noctalia msg plugins enable ordchaos/network-layer
+```
+
+See [network-layer/README.md](./network-layer/README.md) for the full contract.
+
+> **Attribution.** The `mihomo-control` plugin was written by
 > [mdj2812](https://github.com/mdj2812) and released under the MIT License.
-> This fork keeps the original plugin ID (`mdj2812/mihomo-control`), author
-> metadata and license notice. See [LICENSE](./LICENSE) and
-> [mihomo-control/README.md](./mihomo-control/README.md) for the upstream
-> documentation, which is retained.
+> It retains the original plugin ID, author metadata and license notice. See
+> [LICENSE](./LICENSE) and
+> [mihomo-control/README.md](./mihomo-control/README.md) for its upstream
+> documentation.
 
 ## Upstream base
 
@@ -74,7 +106,8 @@ pre-release suffixes), so a `0.2.1-ordchaos.1` style string would be rejected.
 ├── catalog.toml          # plugin source index ([[plugin]] rows)
 ├── LICENSE               # MIT — original author + fork modifications
 ├── README.md             # this file
-└── mihomo-control/       # the plugin (see its README.md for usage/settings)
+├── network-layer/        # native host network layer
+└── mihomo-control/       # retained custom Mihomo control fork
 ```
 
 ## Local development install (path source)
@@ -83,6 +116,7 @@ From the root of this repository:
 
 ```sh
 noctalia msg plugins source add custom-noctalia-plugins path "$PWD"
+noctalia msg plugins enable ordchaos/network-layer
 noctalia msg plugins enable mdj2812/mihomo-control
 ```
 
@@ -160,8 +194,9 @@ re-exports the plugin, and re-scans manifests.
 Offline (no running Mihomo required):
 
 ```sh
+noctalia plugins lint .
 cd mihomo-control
-noctalia plugins lint .          # manifest/code cross-check (parses the Luau)
+noctalia plugins lint .
 lua tests/group_order_test.lua   # Lua 5.2+; upstream smoke.sh uses lua5.4
 ```
 
