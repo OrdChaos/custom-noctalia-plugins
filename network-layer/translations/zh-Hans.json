@@ -27,6 +27,14 @@
     "refresh_interval": {
       "label": "刷新间隔",
       "description": "控制器状态轮询间隔（秒）。"
+    },
+    "panel_mode": {
+      "label": "面板位置",
+      "description": "将网络面板吸附到 bar，或以浮动面板打开。",
+      "options": {
+        "attached": "吸附到 bar",
+        "floating": "浮动"
+      }
     }
   },
   "widget": {

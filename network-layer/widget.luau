@@ -7,6 +7,13 @@
 
 local PLUGIN_ID = "ordchaos/network-layer"
 
+local function panel_id()
+  if noctalia.getConfig("panel_mode") == "floating" then
+    return PLUGIN_ID .. ":panel"
+  end
+  return PLUGIN_ID .. ":panel-attached"
+end
+
 local function format_rate(bytes_per_second)
   local value = tonumber(bytes_per_second) or 0
   if value >= 1024 * 1024 then
@@ -69,7 +76,7 @@ for _, key in {
 end
 
 function onClick()
-  noctalia.togglePanel(PLUGIN_ID .. ":panel")
+  noctalia.togglePanel(panel_id())
 end
 
 function onConfigChanged()

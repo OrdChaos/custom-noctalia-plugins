@@ -19,10 +19,12 @@ extension hook inside the panel.
 
 ## UI
 
-The panel uses Noctalia's own `ui.*` vocabulary only: labels, separators,
-toggles, buttons, selects, a graph and one scroll container. There are no
-hand-rolled cards, status chips or custom color schemes. The widget uses the
-standard status-icon pipeline (`route` / `route-off`).
+The panel uses Noctalia's own `ui.*` vocabulary only: cards built from native
+containers, labels, toggles, buttons, selects, a graph and one scroll
+container. The Mihomo card owns the controller, TUN/actions, traffic and
+policy groups; traffic and groups are nested cards, not parallel sections.
+The widget uses the standard status-icon pipeline (`route` / `route-off`).
+All buttons use the normal variant; only the native toggle keeps its accent.
 
 The panel is a subscriber. All HTTP work belongs to `service.luau`, which
 publishes one `network.*` state namespace. Actions flow back through
@@ -39,6 +41,7 @@ publishes one `network.*` state namespace. Actions flow back through
 | Allow insecure TLS   | off         | Skip certificate verification                 |
 | Latency test URL     | gstatic 204 | URL used for latency tests                    |
 | Refresh interval     | 2 s         | Controller poll interval                      |
+| Panel placement      | attached    | Attached to the bar, or floating              |
 
 `jq` is used only to project oversized `/proxies` responses inside the
 service's CPU budget.
@@ -46,10 +49,10 @@ service's CPU budget.
 ## DNS extension point
 
 `panel.luau` has a single `dns_controls()` function near the bottom. Returning
-a native `ui.*` subtree from it inserts a separator and the DNS section after
-the policy groups. Returning `nil` keeps the current network-only surface. The
-future DNS layer should publish its own state and own its controls; this
-panel does not pre-empt it.
+a native card from it inserts the DNS card as a sibling of the Mihomo card;
+returning `nil` keeps the current network-only surface. The future DNS layer
+should publish its own state and own its controls; this panel does not
+pre-empt it.
 
 ## Mihomo assumptions
 

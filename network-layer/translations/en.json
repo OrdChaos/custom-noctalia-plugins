@@ -27,6 +27,14 @@
     "refresh_interval": {
       "label": "Refresh interval",
       "description": "Seconds between controller status polls."
+    },
+    "panel_mode": {
+      "label": "Panel placement",
+      "description": "Attach the network panel to the bar or open it as a floating panel.",
+      "options": {
+        "attached": "Attached to bar",
+        "floating": "Floating"
+      }
     }
   },
   "widget": {
