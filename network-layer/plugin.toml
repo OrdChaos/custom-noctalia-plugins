@@ -1,6 +1,6 @@
 id = "ordchaos/network-layer"
 name = "Network Layer"
-version = "0.1.6"
+version = "0.1.8"
 plugin_api = 43
 author = "OrdChaos"
 license = "MIT"
@@ -82,7 +82,7 @@ entry = "widget.luau"
 id = "panel"
 entry = "panel.luau"
 width = 560
-height = 500
+height = 560
 placement = "floating"
 position = "center"
 
@@ -90,7 +90,7 @@ position = "center"
 id = "panel-attached"
 entry = "panel.luau"
 width = 560
-height = 500
+height = 560
 placement = "attached"
 position = "auto"
 open_near_click = true

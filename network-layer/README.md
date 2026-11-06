@@ -20,12 +20,13 @@ the panel.
 
 ## UI
 
-The panel uses Noctalia's own `ui.*` vocabulary only: one native Mihomo card,
-a segmented mode row, labels, toggles, buttons, selects, a graph and one
-scroll container. Traffic and policy groups live inside the same card; there
-are no nested cards. The mode selector follows Control Center's power-profile
-segmented control rather than a dropdown. The widget uses the standard
-status-icon pipeline (`route` / `route-off`).
+The panel uses Noctalia's own `ui.*` vocabulary only: three sibling cards for
+Mihomo, traffic and policy groups, a segmented mode row, labels, toggles,
+buttons, selects, a graph and one scroll container. The top row keeps the
+Mihomo and traffic cards side by side; the policy-group card spans the panel
+underneath. There are no nested cards. The mode selector follows Control
+Center's power-profile segmented control rather than a dropdown. The widget
+uses the standard status-icon pipeline (`route` / `route-off`).
 
 The panel is a subscriber. All HTTP work belongs to `service.luau`, which
 publishes one `network.*` state namespace. Actions flow back through

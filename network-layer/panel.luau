@@ -17,7 +17,7 @@ local snapshot = {
   testing = {},
 }
 
-local traffic_open = false
+local mode_hover = nil
 local down_history = {}
 local up_history = {}
 
@@ -136,6 +136,27 @@ local function section_title(text)
   })
 end
 
+local function card_title(text)
+  return ui.label({
+    text = text,
+    fontSize = 16,
+    fontWeight = "bold",
+    color = "on_surface",
+  })
+end
+
+local function card(children, flexGrow)
+  return ui.column({
+    fill = "surface_container",
+    border = "outline_variant",
+    borderWidth = 1,
+    radius = 12,
+    padding = 12,
+    gap = 10,
+    flexGrow = flexGrow or 0,
+  }, children)
+end
+
 local function status_text()
   local status = snapshot.connection.status
   if status == "online" then
@@ -157,32 +178,55 @@ local MODES = {
 -- equal-width segmented row on a Surface lane, not a dropdown.
 local function mode_selector(online)
   local current = tostring(snapshot.config.mode or "rule")
-  local buttons = {}
-  for _, mode in ipairs(MODES) do
+  local segments = {}
+  for index, mode in ipairs(MODES) do
     local selected = current == mode.value
-    table.insert(buttons, ui.button({
-      text = noctalia.tr(mode.key),
-      glyph = mode.glyph,
-      variant = selected and "primary" or "ghost",
-      controlSize = "sm",
+    local hovered = mode_hover == mode.value
+    local text_color = selected and "on_primary" or (hovered and "on_hover" or "on_surface")
+    table.insert(segments, ui.column({
       flexGrow = 1,
-      enabled = online,
+      align = "center",
+      justify = "center",
+      minHeight = 38,
+      paddingH = 8,
+      fill = selected and "primary" or (hovered and "hover" or nil),
+      radius = (index == 1 or index == #MODES) and 6 or 0,
+      opacity = online and 1 or 0.55,
       onClick = function()
-        send_command({ op = "mode", mode = mode.value })
+        if online then
+          send_command({ op = "mode", mode = mode.value })
+        end
       end,
+      onHover = function(state)
+        mode_hover = state == "true" and mode.value or nil
+        render()
+      end,
+    }, {
+      ui.row({ align = "center", justify = "center", gap = 4 }, {
+        ui.glyph({ name = mode.glyph, size = 13, color = text_color }),
+        ui.label({ text = noctalia.tr(mode.key), fontSize = 13, color = text_color }),
+      }),
     }))
+    if index < #MODES then
+      table.insert(segments, ui.separator({
+        orientation = "vertical",
+        thickness = 1,
+        color = "outline_variant",
+        spacing = 0,
+        height = 38,
+        width = 1,
+      }))
+    end
   end
   return ui.column({ gap = 6 }, {
     section_title(noctalia.tr("panel.mode")),
     ui.row({
-      gap = 2,
-      padding = 2,
+      gap = 0,
       fill = "surface",
       radius = 6,
-    }, buttons),
+    }, segments),
   })
 end
-
 local function traffic_controls()
   local traffic = snapshot.traffic
   local down = tonumber(traffic.down) or 0
@@ -201,17 +245,7 @@ local function traffic_controls()
 
   local children = {
     ui.row({ align = "center", justify = "space_between" }, {
-      section_title(noctalia.tr("panel.traffic")),
-      ui.button({
-        glyph = "chart-line",
-        variant = "ghost",
-        controlSize = "sm",
-        tooltip = traffic_open and noctalia.tr("panel.hide_traffic") or noctalia.tr("panel.traffic"),
-        onClick = function()
-          traffic_open = not traffic_open
-          render()
-        end,
-      }),
+      card_title(noctalia.tr("panel.traffic")),
     }),
     ui.row({ justify = "space_between" }, {
       ui.label({ text = `{noctalia.tr("panel.down")}  {format_rate(down)}`, color = "primary", fontSize = 14 }),
@@ -221,19 +255,19 @@ local function traffic_controls()
       ui.label({ text = `{noctalia.tr("panel.down_total")}  {format_total(traffic.downTotal)}`, color = "on_surface_variant", fontSize = 13 }),
       ui.label({ text = `{noctalia.tr("panel.up_total")}  {format_total(traffic.upTotal)}`, color = "on_surface_variant", fontSize = 13 }),
     }),
-  }
-  if traffic_open then
-    table.insert(children, ui.graph({
+    ui.spacer({ flexGrow = 1 }),
+    ui.graph({
       values = normalized(down_history, peak),
       values2 = normalized(up_history, peak),
       color = "primary",
       color2 = "secondary",
       lineWidth = 2,
       fillOpacity = 0.12,
-      height = 48,
-    }))
-  end
-  return ui.column({ gap = 6, flexGrow = 1 }, children)
+      height = 56,
+    }),
+    ui.spacer({ flexGrow = 1 }),
+  }
+  return card(children, 1)
 end
 
 local function controls_column(online)
@@ -342,7 +376,7 @@ local function groups_grid(online)
   local testing = snapshot.testing.active == true
   local children = {
     ui.row({ align = "center", justify = "space_between" }, {
-      section_title(noctalia.tr("panel.groups")),
+      card_title(noctalia.tr("panel.groups")),
       ui.button({
         text = testing and noctalia.tr("panel.testing") or noctalia.tr("panel.test_all"),
         variant = "default",
@@ -387,22 +421,9 @@ local function mihomo_card(online)
     status = `{status} · {error_text}`
   end
 
-  return ui.column({
-    fill = "surface_container",
-    border = "outline_variant",
-    borderWidth = 1,
-    radius = 12,
-    padding = 12,
-    gap = 10,
-  }, {
+  return card({
     ui.row({ align = "center", gap = 8 }, {
-      section_title("Mihomo"),
-      ui.glyph({
-        name = online and "route" or "route-off",
-        size = 14,
-        color = online and "primary" or "error",
-      }),
-      ui.label({ text = status, fontSize = 14, color = online and "on_surface" or "error" }),
+      card_title("Mihomo"),
       ui.label({
         text = version ~= "" and version or "—",
         fontSize = 13,
@@ -411,13 +432,21 @@ local function mihomo_card(online)
         textAlign = "end",
       }),
     }),
-    mode_selector(online),
-    ui.row({ gap = 16, align = "start" }, {
-      controls_column(online),
-      traffic_controls(),
+    ui.row({ align = "center", gap = 6 }, {
+      ui.glyph({
+        name = online and "route" or "route-off",
+        size = 14,
+        color = online and "primary" or "error",
+      }),
+      ui.label({ text = status, fontSize = 14, color = online and "on_surface" or "error" }),
     }),
-    groups_grid(online),
-  })
+    mode_selector(online),
+    controls_column(online),
+  }, 1)
+end
+
+local function groups_card(online)
+  return card({ groups_grid(online) }, 0)
 end
 
 -- DNS extension hook. Return a native card (sibling of the Mihomo card) from
@@ -428,7 +457,13 @@ end
 
 function render()
   local online = snapshot.connection.status == "online"
-  local body = { mihomo_card(online) }
+  local body = {
+    ui.row({ gap = 10, align = "stretch" }, {
+      mihomo_card(online),
+      traffic_controls(),
+    }),
+    groups_card(online),
+  }
   local dns = dns_controls()
   if dns ~= nil then
     table.insert(body, dns)
@@ -436,7 +471,7 @@ function render()
 
   panel.render(ui.column({ flexGrow = 1, gap = 6 }, {
     ui.row({ align = "center", gap = 8 }, {
-      ui.label({ text = noctalia.tr("panel.title"), fontSize = 16, fontWeight = "bold", flexGrow = 1 }),
+      ui.label({ text = noctalia.tr("panel.title"), fontSize = 16, fontWeight = "bold", color = "primary", flexGrow = 1 }),
       ui.button({
         glyph = "close",
         variant = "ghost",

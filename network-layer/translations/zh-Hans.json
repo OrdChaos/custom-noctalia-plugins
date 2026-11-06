@@ -49,7 +49,7 @@
     "up": "上行"
   },
   "panel": {
-    "title": "网络",
+    "title": "网络层",
     "connected": "已连接",
     "connecting": "连接中…",
     "offline": "未连接",
@@ -59,7 +59,7 @@
     "tun": "TUN 模式",
     "update_subscriptions": "更新订阅",
     "updating_subscriptions": "更新中…",
-    "restart": "重启 mihomo",
+    "restart": "重启",
     "traffic": "流量",
     "hide_traffic": "收起流量",
     "down": "下行",

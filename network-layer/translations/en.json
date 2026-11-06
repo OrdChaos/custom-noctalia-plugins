@@ -49,7 +49,7 @@
     "up": "Up"
   },
   "panel": {
-    "title": "Network",
+    "title": "Network Layer",
     "connected": "Connected",
     "connecting": "Connecting…",
     "offline": "Offline",
@@ -59,7 +59,7 @@
     "tun": "TUN mode",
     "update_subscriptions": "Update subscriptions",
     "updating_subscriptions": "Updating…",
-    "restart": "Restart mihomo",
+    "restart": "Restart",
     "traffic": "Traffic",
     "hide_traffic": "Hide traffic",
     "down": "Down",
