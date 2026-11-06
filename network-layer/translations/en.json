@@ -77,7 +77,13 @@
     "mode": "Mode",
     "mode_direct": "Direct",
     "mode_rule": "Proxy",
-    "mode_global": "Global"
+    "mode_global": "Global",
+    "dns_fixed": "Fixed DNS · DoH",
+    "dns_dhcp": "DHCP DNS",
+    "dns_applied": "Applied: {mode}",
+    "dns_pending": "Applying…",
+    "dns_error": "DNS mode change failed",
+    "dns_unknown": "Waiting for host"
   },
   "notify": {
     "delay_done": "Latency test complete",

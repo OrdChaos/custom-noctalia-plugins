@@ -14,6 +14,11 @@ local GROUPS_REFRESH_EVERY = 2
 local STREAM_RETRY_EVERY = 5
 local PROXIES_INLINE_DECODE_LIMIT = 65536
 
+-- Host DNS mode state (no custom CLI; plugin writes the mode file directly).
+local DNS_MODE_FILE = "/var/lib/guixcfg-dns/mode"
+local DNS_APPLIED_FILE = "/run/guixcfg-dns/applied"
+local DNS_STATUS_FILE = "/run/guixcfg-dns/status"
+
 local settings = {
   host = "127.0.0.1",
   port = 9090,
@@ -125,6 +130,7 @@ local state = {
   groups = {},
   subscriptions = { updating = false },
   testing = { active = false, group = "" },
+  dns = { mode = "fixed", applied = "", status = "unknown" },
 }
 
 local function publish(key)
@@ -138,6 +144,35 @@ local function publish_all()
   publish("groups")
   publish("subscriptions")
   publish("testing")
+  publish("dns")
+end
+
+
+local function read_dns_file(path)
+  local text, err = noctalia.readFile(path)
+  if type(text) ~= "string" then
+    return nil, err
+  end
+  return noctalia.string.trim(text)
+end
+
+local function poll_dns_state()
+  local mode_raw = read_dns_file(DNS_MODE_FILE)
+  local applied_raw = read_dns_file(DNS_APPLIED_FILE)
+  local status_raw = read_dns_file(DNS_STATUS_FILE)
+
+  local mode = mode_raw == "dhcp" and "dhcp" or "fixed"
+  local applied = applied_raw == "dhcp" and "dhcp" or (applied_raw == "fixed" and "fixed" or "")
+  local status = status_raw or "unknown"
+  local next_state = { mode = mode, applied = applied, status = status }
+  local current = state.dns
+  if current == nil
+      or current.mode ~= next_state.mode
+      or current.applied ~= next_state.applied
+      or current.status ~= next_state.status then
+    state.dns = next_state
+    publish("dns")
+  end
 end
 
 local function set_online()
@@ -477,6 +512,7 @@ local last_cmd_seq = 0
 local function finish_testing()
   state.testing = { active = false, group = "" }
   publish("testing")
+  publish("dns")
 end
 
 local function resolve_leaf(group_name)
@@ -587,6 +623,7 @@ local function run_delay_test(group_name, opts)
     end
     state.testing = { active = true, group = group_name }
     publish("testing")
+  publish("dns")
   end
 
   local test_url = settings.test_url ~= ""
@@ -627,6 +664,7 @@ local function test_all_groups()
   end
   state.testing = { active = true, group = "*" }
   publish("testing")
+  publish("dns")
 
   local names = {}
   for _, group in ipairs(state.groups) do
@@ -713,6 +751,28 @@ local function handle_command(cmd)
     poll_proxies()
     return
   end
+  if op == "dns_mode" then
+    local mode = tostring(cmd.mode or "")
+    if mode ~= "fixed" and mode ~= "dhcp" then
+      return
+    end
+    -- No custom CLI: the plugin writes the host mode file directly. The
+    -- root applier validates it and switches SmartDNS.
+    local ok, err = noctalia.writeFile(DNS_MODE_FILE, mode .. "\n")
+    if ok then
+      state.dns = { mode = mode, applied = state.dns.applied, status = "pending" }
+      publish("dns")
+    else
+      state.dns = {
+        mode = state.dns.mode,
+        applied = state.dns.applied,
+        status = "error: " .. tostring(err or "write failed"),
+      }
+      publish("dns")
+    end
+    poll_dns_state()
+    return
+  end
   if op == "tun" then
     local enabled = cmd.enabled == true
     request("PATCH", "/configs", json_headers(), { tun = { enable = enabled } }, function(res)
@@ -793,6 +853,7 @@ function update()
     tick += 1
     poll_version()
     poll_configs()
+    poll_dns_state()
     if tick % GROUPS_REFRESH_EVERY == 0 then
       poll_proxies()
     end
@@ -818,6 +879,7 @@ function onConfigChanged()
     stream_attempt_tick = -1
     poll_version()
     poll_configs()
+    poll_dns_state()
     poll_proxies()
   end)
 end
@@ -826,6 +888,7 @@ function onIpc(event, payload)
   safe_call("ipc " .. tostring(event), function()
     if event == "refresh" then
       poll_version()
+      poll_dns_state()
       poll_configs()
       poll_proxies()
     elseif event == "cmd" and payload ~= nil then
@@ -857,6 +920,7 @@ end)
 
 reload_settings()
 noctalia.setUpdateInterval(settings.interval * 1000)
+poll_dns_state()
 state.connection.host = settings.host
 state.connection.port = settings.port
 publish_all()

@@ -23,11 +23,13 @@ network. It provides exactly:
 - policy-group selection;
 - per-group and all-group latency tests;
 - live traffic plus an optional graph;
-- a bar icon showing controller connectivity.
+- a bar icon showing controller + TUN state;
+- a persistent DNS mode selector (fixed DoH or DHCP DNS).
 
 It deliberately omits controller profiles, connection lists, group reordering
-and shortcuts. DNS controls have a dedicated extension hook in the panel and
-are not implemented in this plugin yet.
+and shortcuts. DNS mode is host-level: the panel writes the mode file and the
+root applier switches SmartDNS; there are no domain lists or per-connection
+rules.
 
 It uses only native `ui.*` controls and the standard status-icon pipeline.
 The service owns HTTP and publishes a single `network.*` state namespace.

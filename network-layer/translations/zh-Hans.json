@@ -77,7 +77,13 @@
     "mode": "模式",
     "mode_direct": "直连",
     "mode_rule": "代理",
-    "mode_global": "全局"
+    "mode_global": "全局",
+    "dns_fixed": "固定 DNS · DoH",
+    "dns_dhcp": "DHCP DNS",
+    "dns_applied": "已生效：{mode}",
+    "dns_pending": "切换中…",
+    "dns_error": "DNS 模式切换失败",
+    "dns_unknown": "等待主机应用"
   },
   "notify": {
     "delay_done": "测速完成",

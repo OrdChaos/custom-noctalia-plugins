@@ -15,9 +15,11 @@ local snapshot = {
   groups = {},
   subscriptions = {},
   testing = {},
+  dns = {},
 }
 
 local mode_hover = nil
+local dns_hover = nil
 local down_history = {}
 local up_history = {}
 
@@ -124,6 +126,7 @@ local function refresh_snapshot()
   snapshot.groups = noctalia.state.get("network.groups") or snapshot.groups
   snapshot.subscriptions = noctalia.state.get("network.subscriptions") or snapshot.subscriptions
   snapshot.testing = noctalia.state.get("network.testing") or snapshot.testing
+  snapshot.dns = noctalia.state.get("network.dns") or snapshot.dns
   record_traffic()
 end
 
@@ -469,10 +472,118 @@ end
 
 -- DNS extension hook. Return a native card (sibling of the Mihomo card) from
 -- here when the DNS layer is added; the panel body already has the slot.
-local function dns_controls()
-  return nil
+local DNS_MODES = {
+  { value = "fixed", key = "panel.dns_fixed", glyph = "shield-lock" },
+  { value = "dhcp", key = "panel.dns_dhcp", glyph = "router" },
+}
+
+local function dns_mode_label(mode)
+  for _, option in ipairs(DNS_MODES) do
+    if option.value == mode then
+      return noctalia.tr(option.key)
+    end
+  end
+  return mode
 end
 
+local function dns_status()
+  local dns = snapshot.dns or {}
+  local mode = dns.mode == "dhcp" and "dhcp" or "fixed"
+  local applied = dns.applied or ""
+  local status = tostring(dns.status or "unknown")
+
+  if status:sub(1, 5) == "error" then
+    return noctalia.tr("panel.dns_error"), "error"
+  end
+  if applied == "" then
+    return noctalia.tr("panel.dns_unknown"), "on_surface_variant"
+  end
+  if applied ~= mode then
+    return noctalia.tr("panel.dns_pending"), "on_surface_variant"
+  end
+  return noctalia.tr("panel.dns_applied", { mode = dns_mode_label(applied) }), "on_surface_variant"
+end
+
+local function dns_controls()
+  local dns = snapshot.dns or {}
+  local current = dns.mode == "dhcp" and "dhcp" or "fixed"
+  local segments = {}
+
+  for index, option in ipairs(DNS_MODES) do
+    local selected = current == option.value
+    local hovered = dns_hover == option.value
+    local fill = selected and "primary" or (hovered and "hover" or "surface")
+    local text_color = selected and "on_primary" or (hovered and "on_hover" or "on_surface")
+    local label = noctalia.tr(option.key)
+    local body = ui.column({
+      flexGrow = 1,
+      align = "center",
+      justify = "center",
+      minHeight = 38,
+      paddingH = 8,
+      fill = fill,
+      radius = 0,
+    }, {
+      ui.row({ align = "center", justify = "center", gap = 4 }, {
+        ui.glyph({ name = option.glyph, size = 13, color = text_color }),
+        ui.label({ text = label, fontSize = 13, color = text_color }),
+      }),
+    })
+
+    local parts = {}
+    if index == 1 then
+      table.insert(parts, ui.box({ width = 12, height = 38, fill = fill, radius = 6 }))
+    end
+    table.insert(parts, body)
+    if index == #DNS_MODES then
+      table.insert(parts, ui.box({ width = 12, height = 38, fill = fill, radius = 6 }))
+    end
+
+    table.insert(segments, ui.row({
+      flexGrow = 1,
+      minHeight = 38,
+      gap = -6,
+      align = "stretch",
+      onClick = function()
+        send_command({ op = "dns_mode", mode = option.value })
+      end,
+      onHover = function(state)
+        dns_hover = state == "true" and option.value or nil
+        render()
+      end,
+    }, parts))
+
+    if index < #DNS_MODES then
+      table.insert(segments, ui.separator({
+        orientation = "vertical",
+        thickness = 1,
+        color = "outline_variant",
+        spacing = 0,
+        height = 38,
+        width = 1,
+      }))
+    end
+  end
+
+  local status_text, status_color = dns_status()
+  return card({
+    ui.row({ align = "center", justify = "space_between" }, {
+      card_title(noctalia.tr("panel.dns")),
+    }),
+    ui.column({ gap = 6, align = "stretch" }, {
+      ui.row({
+        gap = 0,
+        fill = "surface",
+        radius = 6,
+      }, segments),
+    }),
+    ui.label({
+      text = status_text,
+      fontSize = 13,
+      color = status_color,
+    }),
+  }, 0)
+end
 function render()
   local online = snapshot.connection.status == "online"
   local body = {
@@ -480,13 +591,12 @@ function render()
       mihomo_card(online),
       traffic_controls(),
     }),
-    groups_card(online),
   }
   local dns = dns_controls()
   if dns ~= nil then
     table.insert(body, dns)
   end
-
+  table.insert(body, groups_card(online))
   panel.render(ui.column({ flexGrow = 1, gap = 6 }, {
     ui.row({ align = "center", gap = 8 }, {
       ui.label({ text = noctalia.tr("panel.title"), fontSize = 16, fontWeight = "bold", color = "primary", flexGrow = 1 }),
@@ -519,6 +629,7 @@ for _, key in {
   "network.groups",
   "network.subscriptions",
   "network.testing",
+  "network.dns",
 } do
   noctalia.state.watch(key, function()
     refresh_snapshot()

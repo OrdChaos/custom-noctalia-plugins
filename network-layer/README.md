@@ -13,24 +13,39 @@ It is intentionally narrower than `mihomo-control`:
 - per-group and all-group latency tests with completion notifications
 - live traffic with an optional graph
 - bar icon reflecting controller + TUN state (struck-through otherwise)
+- persistent DNS mode selector: fixed DoH vs DHCP DNS
 
-It does **not** include controller profiles, connection lists, group reordering
-or shortcuts. DNS controls are reserved as a separate extension hook inside
-the panel.
+It does **not** include controller profiles, connection lists or group
+reordering. DNS mode is the only host-level setting: no domain lists,
+no per-connection rules, no custom CLI.
 
 ## UI
 
-The panel uses Noctalia's own `ui.*` vocabulary only: three sibling cards for
-Mihomo, traffic and policy groups, a segmented mode row, labels, toggles,
+The panel uses Noctalia's own `ui.*` vocabulary only: sibling cards for
+Mihomo, traffic, policy groups and DNS, segmented selectors, labels, toggles,
 buttons, selects, a graph and one scroll container. The top row keeps the
-Mihomo and traffic cards side by side; the policy-group card spans the panel
-underneath. There are no nested cards. The mode selector follows Control
-Center's power-profile segmented control rather than a dropdown. The widget
-uses the standard status-icon pipeline (`route` / `route-off`).
+Mihomo and traffic cards side by side; DNS and policy groups span the panel
+underneath. There are no nested cards.
 
 The panel is a subscriber. All HTTP work belongs to `service.luau`, which
 publishes one `network.*` state namespace. Actions flow back through
 `network.command`.
+
+## DNS mode
+
+The DNS card writes the host mode file directly:
+
+```text
+/var/lib/guixcfg-dns/mode   fixed | dhcp
+```
+
+No custom CLI is installed. The root applier watches that file, validates it,
+switches `/run/guixcfg-dns/smartdns.conf`, and restarts SmartDNS. The plugin
+reads `/run/guixcfg-dns/applied` and `/run/guixcfg-dns/status` for feedback.
+
+- `fixed`: only DoH
+- `dhcp`: only NetworkManager dnsmasq/DHCP DNS
+- no fallback between the two
 
 ## Settings
 
@@ -48,20 +63,12 @@ publishes one `network.*` state namespace. Actions flow back through
 `jq` is used only to project oversized `/proxies` responses inside the
 service's CPU budget.
 
-## DNS extension point
-
-`panel.luau` has a single `dns_controls()` function near the bottom. Returning
-a native card from it inserts the DNS card as a sibling of the Mihomo card;
-returning `nil` keeps the current network-only surface. The future DNS layer
-should publish its own state and own its controls; this panel does not
-pre-empt it.
-
 ## Mihomo assumptions
 
 The plugin is transport-agnostic: it talks to the external controller over
-HTTP(S). The current host configuration uses `redir-host`; this plugin does not
-toggle fake-IP or DNS ownership. See the host architecture docs for the
-redir-host / fake-ip decision.
+HTTP(S). The host now disables Mihomo DNS entirely; SmartDNS supplies real
+addresses and Mihomo only carries TUN/proxy/rule traffic. DNS ownership and
+mode persistence are host concerns, not the Mihomo controller.
 
 ## Development
 
