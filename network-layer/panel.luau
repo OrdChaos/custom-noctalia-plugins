@@ -201,17 +201,17 @@ local function mode_selector(online)
 
     local parts = {}
     if index == 1 then
-      table.insert(parts, ui.box({ width = 6, height = 38, fill = fill, radius = 6 }))
+      table.insert(parts, ui.box({ width = 12, height = 38, fill = fill, radius = 6 }))
     end
     table.insert(parts, body)
     if index == #MODES then
-      table.insert(parts, ui.box({ width = 6, height = 38, fill = fill, radius = 6 }))
+      table.insert(parts, ui.box({ width = 12, height = 38, fill = fill, radius = 6 }))
     end
 
     table.insert(segments, ui.row({
       flexGrow = 1,
       minHeight = 38,
-      gap = 0,
+      gap = -6,
       align = "stretch",
       opacity = online and 1 or 0.55,
       onClick = function()
