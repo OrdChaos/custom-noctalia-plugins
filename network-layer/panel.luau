@@ -389,6 +389,8 @@ local function mihomo_card(online)
 
   return ui.column({
     fill = "surface_container",
+    border = "outline_variant",
+    borderWidth = 1,
     radius = 12,
     padding = 12,
     gap = 10,
@@ -432,7 +434,7 @@ function render()
     table.insert(body, dns)
   end
 
-  panel.render(ui.column({ flexGrow = 1, gap = 8, padding = 8 }, {
+  panel.render(ui.column({ flexGrow = 1, gap = 6, paddingH = 4, paddingV = 6 }, {
     ui.row({ align = "center", gap = 8 }, {
       ui.label({ text = noctalia.tr("panel.title"), fontSize = 15, fontWeight = "bold", flexGrow = 1 }),
       ui.button({
