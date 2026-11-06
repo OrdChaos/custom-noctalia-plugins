@@ -508,6 +508,29 @@ local function resolve_leaf(group_name)
   return nil
 end
 
+local function notify_group_result(group_name)
+  local group = find_group(group_name)
+  if group == nil or group.now == nil or group.now == "" then
+    return
+  end
+  local selected = group.now
+  local delay = nil
+  for _, member in ipairs(group.members) do
+    if member.name == selected then
+      delay = member.delay
+      break
+    end
+  end
+  local parts = { group_name, selected }
+  if delay ~= nil then
+    table.insert(parts, delay > 0 and `{delay} ms` or noctalia.tr("notify.delay_timeout_value"))
+  end
+  noctalia.notify(
+    noctalia.tr("notify.delay_done"),
+    noctalia.tr("notify.delay_selected", { selection = table.concat(parts, " - ") })
+  )
+end
+
 local function notify_result(group_name, include_group)
   local leaf, delay = resolve_leaf(group_name)
   if leaf == nil then
@@ -590,7 +613,7 @@ local function run_delay_test(group_name, opts)
     end
     if not options.internal then
       finish_testing()
-      notify_result(group_name, true)
+      notify_group_result(group_name)
     end
     if options.on_done then
       options.on_done()

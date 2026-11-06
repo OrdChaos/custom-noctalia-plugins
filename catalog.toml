@@ -22,8 +22,8 @@ tags = ["network", "indicator", "utility", "bar", "panel", "service", "shortcut"
 [[plugin]]
 id = "ordchaos/network-layer"
 name = "Network Layer"
-version = "0.1.14"
-updated_at = 1793977000
+version = "0.1.15"
+updated_at = 1793978000
 added_at = 1793963000
 author = "OrdChaos"
 license = "MIT"
