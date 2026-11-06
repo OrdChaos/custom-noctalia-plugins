@@ -1,6 +1,6 @@
 id = "ordchaos/network-layer"
 name = "Network Layer"
-version = "0.1.4"
+version = "0.1.5"
 plugin_api = 43
 author = "OrdChaos"
 license = "MIT"

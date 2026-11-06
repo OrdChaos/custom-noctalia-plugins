@@ -434,7 +434,7 @@ function render()
     table.insert(body, dns)
   end
 
-  panel.render(ui.column({ flexGrow = 1, gap = 6, paddingH = 4, paddingV = 6 }, {
+  panel.render(ui.column({ flexGrow = 1, gap = 6 }, {
     ui.row({ align = "center", gap = 8 }, {
       ui.label({ text = noctalia.tr("panel.title"), fontSize = 15, fontWeight = "bold", flexGrow = 1 }),
       ui.button({
