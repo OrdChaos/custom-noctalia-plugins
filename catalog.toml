@@ -9,8 +9,8 @@
 [[plugin]]
 id = "ordchaos/network-layer"
 name = "Network Layer"
-version = "0.2.4"
-updated_at = 1793985000
+version = "0.2.5"
+updated_at = 1793988000
 added_at = 1793963000
 author = "OrdChaos"
 license = "MIT"
