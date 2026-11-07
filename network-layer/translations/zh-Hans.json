@@ -76,7 +76,7 @@
     "dns": "DNS",
     "mode": "模式",
     "mode_direct": "直连",
-    "mode_rule": "代理",
+    "mode_rule": "规则",
     "mode_global": "全局",
     "dns_fixed": "固定",
     "dns_dhcp": "DHCP",

@@ -76,7 +76,7 @@
     "dns": "DNS",
     "mode": "Mode",
     "mode_direct": "Direct",
-    "mode_rule": "Proxy",
+    "mode_rule": "Rule",
     "mode_global": "Global",
     "dns_fixed": "Fixed",
     "dns_dhcp": "DHCP",

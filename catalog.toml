@@ -7,19 +7,6 @@
 # current row version.
 
 [[plugin]]
-id = "mdj2812/mihomo-control"
-name = "Mihomo Control (Custom)"
-version = "0.2.4"
-updated_at = 1793758219
-added_at = 1787899773
-author = "mdj2812"
-license = "MIT"
-icon = "cat"
-description = "Monitor and control Mihomo (Clash Meta) — live traffic, proxy mode, group selection, and connections, local or remote."
-plugin_api = 43
-tags = ["network", "indicator", "utility", "bar", "panel", "service", "shortcut"]
-
-[[plugin]]
 id = "ordchaos/network-layer"
 name = "Network Layer"
 version = "0.2.4"
